@@ -1,1408 +1,452 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SYSTEM_01 - PROTOCOL INTERFACE</title>
-  
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollSmoother.min.js"></script>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    :root {
-      --black: #050505;
-      --white: #FAFAFA;
-      --grey: #333333;
-    }
-    
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--black);
-      color: var(--white);
-      overflow-x: hidden;
-      cursor: crosshair;
-      position: relative;
-    }
-    
-    html {
-      scroll-behavior: smooth;
-    }
-    
-    /* GLOBAL BACKGROUND ELEMENTS */
-    .global-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.05;
-    }
-    
-    .global-grid-line {
-      position: absolute;
-      background: var(--white);
-    }
-    
-    .global-grid-line.h1 { top: 0; left: 0; width: 100%; height: 1px; }
-    .global-grid-line.h2 { top: 25%; left: 0; width: 100%; height: 1px; }
-    .global-grid-line.h3 { top: 50%; left: 0; width: 100%; height: 1px; }
-    .global-grid-line.h4 { top: 75%; left: 0; width: 100%; height: 1px; }
-    .global-grid-line.v1 { top: 0; left: 0; width: 1px; height: 100%; }
-    .global-grid-line.v2 { top: 0; left: 25%; width: 1px; height: 100%; }
-    .global-grid-line.v3 { top: 0; left: 50%; width: 1px; height: 100%; }
-    .global-grid-line.v4 { top: 0; left: 75%; width: 1px; height: 100%; }
-    .global-grid-line.v5 { top: 0; right: 0; width: 1px; height: 100%; }
-    
-    .circuit-line {
-      position: fixed;
-      background: var(--white);
-      opacity: 0.08;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .global-particle {
-      position: fixed;
-      width: 1px;
-      height: 1px;
-      background: var(--white);
-      opacity: 0.4;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    /* PRELOADER */
-    #preloader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--black);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .grid-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    
-    .grid-line {
-      position: absolute;
-      background: var(--white);
-    }
-    
-    .grid-line.horizontal {
-      height: 1px;
-      width: 0;
-      left: 0;
-    }
-    
-    .grid-line.vertical {
-      width: 1px;
-      height: 0;
-      top: 0;
-    }
-    
-    .boot-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
-      letter-spacing: 2px;
-      z-index: 10;
-      opacity: 0;
-    }
-    
-    .split-top, .split-bottom {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 50%;
-      background: var(--black);
-      z-index: 10;
-    }
-    
-    .split-top { top: 0; }
-    .split-bottom { bottom: 0; }
-    
-    /* HERO SECTION */
-    #hero {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      border-bottom: 1px solid var(--white);
-      overflow: hidden;
-    }
-    
-    /* ANIMATED BACKGROUND ELEMENTS */
-    .bg-grid {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.15;
-      pointer-events: none;
-    }
-    
-    .bg-line {
-      position: absolute;
-      background: var(--white);
-    }
-    
-    .bg-line.horizontal {
-      width: 100%;
-      height: 1px;
-    }
-    
-    .bg-line.vertical {
-      width: 1px;
-      height: 100%;
-    }
-    
-    .floating-node {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: var(--white);
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(250, 250, 250, 0.8), 0 0 40px rgba(250, 250, 250, 0.4);
-      pointer-events: none;
-      z-index: 1;
-    }
-    
-    .node-trail {
-      position: absolute;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--white), transparent);
-      opacity: 0.6;
-      pointer-events: none;
-    }
-    
-    .scanline {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(180deg, transparent, var(--white), transparent);
-      opacity: 0.3;
-      pointer-events: none;
-      z-index: 1;
-    }
-    
-    .data-particle {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: var(--white);
-      opacity: 0.6;
-      pointer-events: none;
-    }
-    
-    .corner-bracket {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border: 1px solid var(--white);
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    
-    .corner-bracket.top-left {
-      top: 40px;
-      left: 40px;
-      border-right: none;
-      border-bottom: none;
-    }
-    
-    .corner-bracket.top-right {
-      top: 40px;
-      right: 40px;
-      border-left: none;
-      border-bottom: none;
-    }
-    
-    .corner-bracket.bottom-left {
-      bottom: 40px;
-      left: 40px;
-      border-right: none;
-      border-top: none;
-    }
-    
-    .corner-bracket.bottom-right {
-      bottom: 40px;
-      right: 40px;
-      border-left: none;
-      border-top: none;
-    }
-    
-    .coordinate-marker {
-      position: absolute;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--white);
-      opacity: 0.3;
-      pointer-events: none;
-      letter-spacing: 1px;
-    }
-    
-    .hero-content {
-      text-align: center;
-      z-index: 2;
-    }
-    
-    .hero-title {
-      font-size: clamp(60px, 12vw, 180px);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      line-height: 0.9;
-      overflow: hidden;
-    }
-    
-    .hero-title span {
-      display: inline-block;
-      transform: translateY(100%);
-    }
-    
-    .hero-subtitle {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(10px, 1.5vw, 14px);
-      letter-spacing: 3px;
-      margin-top: 20px;
-      opacity: 0;
-    }
-    
-    /* VIDEO SCRUB SECTION */
-    #video-section {
-      height: 400vh;
-      position: relative;
-    }
-    
-    .video-container {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 1px solid var(--white);
-      overflow: hidden;
-    }
-    
-    #scrub-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    .video-placeholder {
-      width: 90%;
-      height: 80%;
-      border: 1px solid var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-    }
-    
-    .video-progress {
-      position: absolute;
-      bottom: 40px;
-      left: 40px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-      z-index: 10;
-    }
-    
-    /* GRID SECTIONS */
-    .grid-section {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      border-bottom: 1px solid var(--white);
-      position: relative;
-    }
-    
-    .grid-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 1px;
-      height: 100%;
-      background: var(--grey);
-    }
-    
-    .grid-item {
-      grid-column: span 6;
-      padding: 80px 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      border-right: 1px solid var(--grey);
-    }
-    
-    .grid-item:last-child {
-      border-right: none;
-    }
-    
-    .grid-item h2 {
-      font-size: clamp(40px, 6vw, 80px);
-      font-weight: 900;
-      margin-bottom: 30px;
-      line-height: 1;
-    }
-    
-    .grid-item p {
-      font-size: clamp(14px, 1.2vw, 18px);
-      line-height: 1.6;
-      opacity: 0.8;
-    }
-    
-    .grid-item .label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-    
-    .data-block {
-      background: var(--white);
-      color: var(--black);
-      padding: 40px;
-      margin: 20px 0;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 1.8;
-    }
-    
-    /* BUTTONS */
-    .btn {
-      display: inline-block;
-      padding: 20px 40px;
-      border: 1px solid var(--white);
-      background: var(--black);
-      color: var(--white);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-decoration: none;
-      margin-top: 30px;
-      transition: none;
-      cursor: pointer;
-    }
-    
-    .btn:hover {
-      background: var(--white);
-      color: var(--black);
-    }
-    
-    /* FOOTER */
-    footer {
-      padding: 0;
-      border-top: 1px solid var(--white);
-      font-family: 'JetBrains Mono', monospace;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .footer-top {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border-bottom: 1px solid var(--white);
-    }
-    
-    .footer-column {
-      padding: 60px 40px;
-      border-right: 1px solid var(--grey);
-    }
-    
-    .footer-column:last-child {
-      border-right: none;
-    }
-    
-    .footer-column h3 {
-      font-size: 12px;
-      letter-spacing: 2px;
-      margin-bottom: 30px;
-      opacity: 0.5;
-    }
-    
-    .footer-column ul {
-      list-style: none;
-    }
-    
-    .footer-column ul li {
-      margin-bottom: 15px;
-      font-size: 14px;
-      letter-spacing: 1px;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-    
-    .footer-column ul li:hover {
-      opacity: 1;
-    }
-    
-    .footer-bottom {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      padding: 40px;
-      font-size: 10px;
-      letter-spacing: 2px;
-      opacity: 0.6;
-    }
-    
-    .footer-status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--white);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    
-    .footer-metrics {
-      text-align: center;
-    }
-    
-    .footer-copyright {
-      text-align: right;
-    }
-    
-    .social-links {
-      display: flex;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    
-    .social-link {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      transition: none;
-    }
-    
-    .social-link:hover {
-      background: var(--white);
-      color: var(--black);
-    }
-    
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .grid-section {
-        grid-template-columns: 1fr;
-      }
-      
-      .grid-section::before {
-        display: none;
-      }
-      
-      .grid-item {
-        grid-column: span 1;
-        padding: 60px 30px;
-        border-right: none;
-        border-bottom: 1px solid var(--grey);
-      }
-      
-      .video-progress {
-        left: 20px;
-        bottom: 20px;
-      }
-      
-      .footer-top {
-        grid-template-columns: 1fr 1fr;
-      }
-      
-      .footer-column {
-        border-right: none;
-        border-bottom: 1px solid var(--grey);
-        padding: 40px 30px;
-      }
-      
-      .footer-bottom {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        text-align: center;
-      }
-      
-      .footer-copyright {
-        text-align: center;
-      }
-      
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    /* NEW CONTENT SECTIONS */
-    .stats-section {
-      padding: 100px 60px;
-      border-bottom: 1px solid var(--white);
-      position: relative;
-    }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1px;
-      background: var(--white);
-      border: 1px solid var(--white);
-    }
-    
-    .stat-item {
-      background: var(--black);
-      padding: 60px 40px;
-      text-align: center;
-    }
-    
-    .stat-number {
-      font-size: clamp(40px, 5vw, 60px);
-      font-weight: 900;
-      margin-bottom: 15px;
-      font-family: 'Inter', sans-serif;
-    }
-    
-    .stat-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      opacity: 0.6;
-    }
-    
-    .terminal-section {
-      padding: 100px 60px;
-      border-bottom: 1px solid var(--white);
-      position: relative;
-    }
-    
-    .terminal-window {
-      background: var(--black);
-      border: 1px solid var(--white);
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    
-    .terminal-header {
-      padding: 15px 20px;
-      border-bottom: 1px solid var(--white);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .terminal-body {
-      padding: 30px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 2;
-      min-height: 300px;
-    }
-    
-    .terminal-line {
-      opacity: 0;
-      margin-bottom: 5px;
-    }
-    
-    .terminal-prompt {
-      color: var(--white);
-      opacity: 0.6;
-    }
-    
-    .terminal-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 16px;
-      background: var(--white);
-      animation: blink 1s step-end infinite;
-      margin-left: 5px;
-    }
-    
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
-    
-    .feature-showcase {
-      padding: 100px 60px;
-      border-bottom: 1px solid var(--white);
-      position: relative;
-    }
-    
-    .showcase-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--white);
-      border: 1px solid var(--white);
-    }
-    
-    .showcase-item {
-      background: var(--black);
-      padding: 60px 40px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .showcase-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--white);
-      transform: translateX(-100%);
-      transition: transform 0.5s ease;
-    }
-    
-    .showcase-item:hover::before {
-      transform: translateX(0);
-    }
-    
-    .showcase-item:hover .showcase-content {
-      color: var(--black);
-      z-index: 1;
-      position: relative;
-    }
-    
-    .showcase-icon {
-      font-size: 40px;
-      margin-bottom: 30px;
-    }
-    
-    .showcase-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 15px;
-      letter-spacing: 1px;
-    }
-    
-    .showcase-desc {
-      font-size: 14px;
-      line-height: 1.6;
-      opacity: 0.8;
-    }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FarviewGlobal</title>
+    <meta
+      name="description"
+      content="Your partners in product innovation, making business and life easier. Custom software development, cloud solutions, AI, and dedicated engineering teams."
+    />
+    <meta property="og:title" content="FarviewGlobal - Human, Simple, and Scalable Tech" />
+    <meta property="og:description" content="Your partners in product innovation, making business and life easier." />
+    <meta property="og:type" content="website" />
 
-  <!-- GLOBAL BACKGROUND ELEMENTS -->
-  <div class="global-bg">
-    <div class="global-grid-line h1"></div>
-    <div class="global-grid-line h2"></div>
-    <div class="global-grid-line h3"></div>
-    <div class="global-grid-line h4"></div>
-    <div class="global-grid-line v1"></div>
-    <div class="global-grid-line v2"></div>
-    <div class="global-grid-line v3"></div>
-    <div class="global-grid-line v4"></div>
-    <div class="global-grid-line v5"></div>
-  </div>
-
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="grid-overlay">
-      <div class="grid-line horizontal" style="top: 20%;"></div>
-      <div class="grid-line horizontal" style="top: 40%;"></div>
-      <div class="grid-line horizontal" style="top: 60%;"></div>
-      <div class="grid-line horizontal" style="top: 80%;"></div>
-      <div class="grid-line vertical" style="left: 25%;"></div>
-      <div class="grid-line vertical" style="left: 50%;"></div>
-      <div class="grid-line vertical" style="left: 75%;"></div>
-    </div>
-    <div class="boot-text">INITIALIZING SEQUENCE</div>
-    <div class="boot-text" style="margin-top: 10px;">ASSET LOAD: 99%</div>
-    <div class="split-top"></div>
-    <div class="split-bottom"></div>
-  </div>
-
-  <!-- HERO SECTION -->
-  <section id="hero">
-    <!-- Animated Background Grid -->
-    <div class="bg-grid">
-      <div class="bg-line horizontal" style="top: 20%;"></div>
-      <div class="bg-line horizontal" style="top: 40%;"></div>
-      <div class="bg-line horizontal" style="top: 60%;"></div>
-      <div class="bg-line horizontal" style="top: 80%;"></div>
-      <div class="bg-line vertical" style="left: 20%;"></div>
-      <div class="bg-line vertical" style="left: 40%;"></div>
-      <div class="bg-line vertical" style="left: 60%;"></div>
-      <div class="bg-line vertical" style="left: 80%;"></div>
-    </div>
-    
-    <!-- Corner Brackets -->
-    <div class="corner-bracket top-left"></div>
-    <div class="corner-bracket top-right"></div>
-    <div class="corner-bracket bottom-left"></div>
-    <div class="corner-bracket bottom-right"></div>
-    
-    <!-- Coordinate Markers -->
-    <div class="coordinate-marker" style="top: 20px; left: 20px;">LAT: 37.7749</div>
-    <div class="coordinate-marker" style="top: 20px; right: 20px;">LONG: -122.4194</div>
-    <div class="coordinate-marker" style="bottom: 20px; left: 20px;">ALT: 16M</div>
-    <div class="coordinate-marker" style="bottom: 20px; right: 20px;">UTC +00:00</div>
-    
-    <!-- Scanlines -->
-    <div class="scanline" style="top: 0;"></div>
-    <div class="scanline" style="top: 33%;"></div>
-    <div class="scanline" style="top: 66%;"></div>
-    
-    <div class="hero-content">
-      <h1 class="hero-title">
-        <span>S</span><span>Y</span><span>S</span><span>T</span><span>E</span><span>M</span><span>_</span><span>0</span><span>1</span>
-      </h1>
-      <p class="hero-subtitle">PROTOCOL INTERFACE v2.4.7</p>
-    </div>
-  </section>
-
-  <!-- VIDEO SCRUB SECTION -->
-  <section id="video-section">
-    <div class="video-container">
-      <video id="scrub-video" muted preload="auto" playsinline style="display: none;">
-        <source src="scrollvideo.mp4" type="video/mp4">
-      </video>
-      <div class="video-placeholder">
-        [ VIDEO_SCRUB_TIMELINE ]<br>SCROLL TO CONTROL PLAYBACK
-      </div>
-      <div class="video-progress">
-        TIMELINE: <span id="progress-indicator">00.00%</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- GRID SECTION 1 -->
-  <section class="grid-section">
-    <div class="grid-item">
-      <div class="label">[001_ARCHITECTURE]</div>
-      <h2>PRECISION<br>ENGINEERING</h2>
-      <p>Every element calculated. Every interaction measured. A system built on mathematical principles and architectural integrity.</p>
-      <button class="btn">EXPLORE SYSTEMS</button>
-    </div>
-    <div class="grid-item">
-      <div class="data-block">
-        SYSTEM METRICS<br>
-        ────────────────<br>
-        UPTIME: 99.97%<br>
-        LATENCY: &lt;12ms<br>
-        THROUGHPUT: 2.4TB/s<br>
-        NODES: 847 ACTIVE<br>
-        ────────────────<br>
-        STATUS: OPERATIONAL
-      </div>
-    </div>
-  </section>
-
-  <!-- GRID SECTION 2 -->
-  <section class="grid-section">
-    <div class="grid-item">
-      <div class="data-block">
-        PROTOCOL_INDEX<br>
-        ────────────────<br>
-        01: NEURAL_SYNC<br>
-        02: GRID_COMPUTE<br>
-        03: CACHE_LAYER<br>
-        04: EDGE_NODE<br>
-        ────────────────<br>
-        ACCESS: GRANTED
-      </div>
-    </div>
-    <div class="grid-item">
-      <div class="label">[002_INFRASTRUCTURE]</div>
-      <h2>DISTRIBUTED<br>NETWORK</h2>
-      <p>A decentralized architecture spanning global nodes. Fault-tolerant, self-healing, and perpetually optimizing.</p>
-      <button class="btn">VIEW TOPOLOGY</button>
-    </div>
-  </section>
-
-  <!-- GRID SECTION 3 -->
-  <section class="grid-section">
-    <div class="grid-item">
-      <div class="label">[003_TERMINAL]</div>
-      <h2>COMMAND<br>INTERFACE</h2>
-      <p>Direct access to core systems. Unfiltered control for authorized operators. No abstractions, only precision.</p>
-      <button class="btn">INITIALIZE SESSION</button>
-    </div>
-    <div class="grid-item">
-      <div class="data-block">
-        SESSION_LOG<br>
-        ────────────────<br>
-        &gt; sudo systemctl start<br>
-        &gt; loading modules...<br>
-        &gt; 847 processes active<br>
-        &gt; all systems nominal<br>
-        ────────────────<br>
-        READY_STATE: TRUE
-      </div>
-    </div>
-  </section>
-
-  <!-- STATS SECTION -->
-  <section class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-number">99.9%</div>
-        <div class="stat-label">UPTIME</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">847</div>
-        <div class="stat-label">ACTIVE NODES</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">&lt;12ms</div>
-        <div class="stat-label">LATENCY</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">2.4TB</div>
-        <div class="stat-label">THROUGHPUT</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TERMINAL SECTION -->
-  <section class="terminal-section">
-    <div class="terminal-window">
-      <div class="terminal-header">
-        <span>SYSTEM_TERMINAL</span>
-        <span>SESSION_ID: 0x7F8A9B2C</span>
-      </div>
-      <div class="terminal-body" id="terminal-output">
-        <div class="terminal-line"><span class="terminal-prompt">root@system:~$</span> initialize protocol_v2</div>
-        <div class="terminal-line">Loading core modules...</div>
-        <div class="terminal-line">[OK] Neural sync established</div>
-        <div class="terminal-line">[OK] Grid compute online</div>
-        <div class="terminal-line">[OK] Cache layer active</div>
-        <div class="terminal-line">[OK] Edge nodes synchronized</div>
-        <div class="terminal-line">System initialization complete.</div>
-        <div class="terminal-line"><span class="terminal-prompt">root@system:~$</span> status --full</div>
-        <div class="terminal-line">All systems operational. Ready for input.<span class="terminal-cursor"></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURE SHOWCASE -->
-  <section class="feature-showcase">
-    <div class="showcase-grid">
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">⚡</div>
-          <div class="showcase-title">REAL-TIME PROCESSING</div>
-          <div class="showcase-desc">Sub-millisecond response times across distributed infrastructure</div>
-        </div>
-      </div>
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">🔒</div>
-          <div class="showcase-title">ENCRYPTED PROTOCOLS</div>
-          <div class="showcase-desc">Military-grade encryption for all data transmission layers</div>
-        </div>
-      </div>
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">🌐</div>
-          <div class="showcase-title">GLOBAL NETWORK</div>
-          <div class="showcase-desc">847 distributed nodes spanning 6 continents</div>
-        </div>
-      </div>
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">📊</div>
-          <div class="showcase-title">ANALYTICS ENGINE</div>
-          <div class="showcase-desc">Real-time data analysis and predictive modeling</div>
-        </div>
-      </div>
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">🔧</div>
-          <div class="showcase-title">AUTO-SCALING</div>
-          <div class="showcase-desc">Dynamic resource allocation based on demand</div>
-        </div>
-      </div>
-      <div class="showcase-item">
-        <div class="showcase-content">
-          <div class="showcase-icon">⚙️</div>
-          <div class="showcase-title">FAULT TOLERANCE</div>
-          <div class="showcase-desc">Self-healing architecture with zero downtime</div>
+    <link rel="stylesheet" href="global.css" />
+    <link rel="stylesheet" href="layout.css" />
+    <link rel="stylesheet" href="utilities.css" />
+  </head>
+  <body>
+    <div class="loader" id="fv-loader" aria-label="Loading" role="status" aria-live="polite">
+      <div class="loader__stage">
+        <div class="loader__panel">
+          <div class="loader__boot" data-loader-boot>INITIALIZING FARVIEW SYSTEMS...</div>
+          <div class="loader__brand" aria-label="Farview Global">
+            <div class="loader__title" data-loader-title>FARVIEW GLOBAL</div>
+            <div class="loader__pulse" aria-hidden="true"></div>
+            <div class="loader__scan" aria-hidden="true"></div>
+            <div class="loader__subtitle" data-loader-subtitle><span class="loader__dot" aria-hidden="true"></span>SYSTEMS ONLINE</div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-top">
-      <div class="footer-column">
-        <h3>[NAVIGATION]</h3>
-        <ul>
-          <li>Home</li>
-          <li>Architecture</li>
-          <li>Infrastructure</li>
-          <li>Terminal</li>
-          <li>Documentation</li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3>[RESOURCES]</h3>
-        <ul>
-          <li>API Reference</li>
-          <li>Developer Portal</li>
-          <li>System Status</li>
-          <li>Security</li>
-          <li>Changelog</li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3>[COMPANY]</h3>
-        <ul>
-          <li>About</li>
-          <li>Careers</li>
-          <li>Press Kit</li>
-          <li>Contact</li>
-          <li>Legal</li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3>[CONNECT]</h3>
-        <div class="social-links">
-          <div class="social-link">GH</div>
-          <div class="social-link">TW</div>
-          <div class="social-link">LI</div>
+    <div class="page-shell">
+      <header class="site-header">
+        <video
+          class="site-header__bg-video"
+          id="heroBackgroundVideo"
+          data-reverse-src="scroll-reverse.mp4"
+          muted
+          playsinline
+          preload="metadata"
+          poster="media/hero-strata-poster.jpg"
+        >
+          <source src="scroll.mp4" type="video/mp4" />
+        </video>
+        <div class="site-header__bg-overlay" aria-hidden="true"></div>
+        <nav class="site-header__floating-nav" aria-label="Primary">
+          <div class="site-header__floating-shell">
+            <ul class="site-header__floating-links text-uppercase text-muted">
+              <li><a class="site-header__floating-link" href="/home">Home</a></li>
+              <li><a class="site-header__floating-link" href="/services">Services</a></li>
+              <li><a class="site-header__floating-link" href="/case-studies">Case Studies</a></li>
+              <li><a class="site-header__floating-link" href="/contact">Contact</a></li>
+            </ul>
+          </div>
+        </nav>
+        <div class="container">
+          <div class="layout-grid">
+            <div class="site-identity section__body">
+              <p class="text-uppercase text-muted">FarviewGlobal</p>
+              <h1 class="text-tight">Human, Simple, and Scalable Tech</h1>
+              <p>Your partners in product innovation, making business and life easier.</p>
+            </div>
+          </div>
         </div>
-        <ul style="margin-top: 30px;">
-          <li>support@system01.io</li>
-          <li>+1 (555) 847-0001</li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div class="footer-status">
-        <div class="status-dot"></div>
-        <span>ALL SYSTEMS OPERATIONAL</span>
-      </div>
-      <div class="footer-metrics">
-        PROTOCOL v2.4.7 | BUILD 8472
-      </div>
-      <div class="footer-copyright">
-        © 2024 SYSTEM_01
-      </div>
-    </div>
-  </footer>
+      </header>
 
-  <script>
-    // Wait for page to load
-    window.addEventListener('DOMContentLoaded', () => {
-      
-      // PRELOADER ANIMATION
-      const tl = gsap.timeline();
-      
-      // Animate grid lines
-      tl.to('.grid-line.horizontal', {
-        width: '100%',
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power4.out'
-      })
-      .to('.grid-line.vertical', {
-        height: '100%',
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power4.out'
-      }, '-=0.6')
-      .to('.boot-text', {
-        opacity: 1,
-        duration: 0.3,
-        stagger: 0.1
-      }, '-=0.4')
-      .to('.boot-text', {
-        opacity: 0,
-        duration: 0.2,
-        stagger: 0.05
-      }, '+=0.5')
-      .to('.split-top', {
-        y: '-100%',
-        duration: 1.2,
-        ease: 'power4.inOut'
-      })
-      .to('.split-bottom', {
-        y: '100%',
-        duration: 1.2,
-        ease: 'power4.inOut'
-      }, '-=1.2')
-      .to('#preloader', {
-        display: 'none',
-        duration: 0
-      });
-      
-      // HERO ANIMATION
-      tl.to('.hero-title span', {
-        y: 0,
-        duration: 1.2,
-        stagger: 0.05,
-        ease: 'power4.out'
-      }, '-=0.8')
-      .to('.hero-subtitle', {
-        opacity: 1,
-        duration: 0.8,
-        ease: 'power4.out'
-      }, '-=0.6');
-      
-      // ANIMATED BACKGROUND ELEMENTS
-      
-      // Animate scanlines
-      gsap.to('.scanline', {
-        y: '100vh',
-        duration: 8,
-        ease: 'none',
-        repeat: -1,
-        stagger: 2.5
-      });
-      
-      // Animate corner brackets
-      gsap.to('.corner-bracket', {
-        scale: 1.1,
-        opacity: 0.6,
-        duration: 2,
-        ease: 'power2.inOut',
-        repeat: -1,
-        yoyo: true,
-        stagger: 0.3
-      });
-      
-      // Create floating nodes with trails
-      function createFloatingNode() {
-        const hero = document.getElementById('hero');
-        const node = document.createElement('div');
-        node.className = 'floating-node';
-        
-        const startX = Math.random() * window.innerWidth;
-        const startY = Math.random() * window.innerHeight;
-        const endX = Math.random() * window.innerWidth;
-        const endY = Math.random() * window.innerHeight;
-        
-        node.style.left = startX + 'px';
-        node.style.top = startY + 'px';
-        
-        hero.appendChild(node);
-        
-        // Create trail
-        const trail = document.createElement('div');
-        trail.className = 'node-trail';
-        trail.style.left = startX + 'px';
-        trail.style.top = startY + 'px';
-        trail.style.width = '0px';
-        hero.appendChild(trail);
-        
-        const angle = Math.atan2(endY - startY, endX - startX);
-        const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-        
-        trail.style.transform = `rotate(${angle}rad)`;
-        trail.style.transformOrigin = 'left center';
-        
-        // Animate trail
-        gsap.to(trail, {
-          width: distance,
-          duration: 3,
-          ease: 'power2.inOut'
-        });
-        
-        // Animate node
-        gsap.to(node, {
-          left: endX,
-          top: endY,
-          duration: 3,
-          ease: 'power2.inOut',
-          onComplete: () => {
-            node.remove();
-            gsap.to(trail, {
-              opacity: 0,
-              duration: 0.5,
-              onComplete: () => trail.remove()
-            });
-          }
-        });
-      }
-      
-      // Create nodes periodically
-      setInterval(createFloatingNode, 2000);
-      for (let i = 0; i < 3; i++) {
-        setTimeout(createFloatingNode, i * 800);
-      }
-      
-      // Create floating data particles
-      function createDataParticles() {
-        const sections = document.querySelectorAll('section');
-        sections.forEach(section => {
-          for (let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'data-particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            section.appendChild(particle);
-            
-            gsap.to(particle, {
-              y: -50 - Math.random() * 100,
-              x: (Math.random() - 0.5) * 50,
-              opacity: 0,
-              duration: 3 + Math.random() * 3,
-              ease: 'power1.out',
-              repeat: -1,
-              delay: Math.random() * 3
-            });
-          }
-        });
-      }
-      
-      createDataParticles();
-      
-      // GLOBAL BACKGROUND ANIMATIONS
-      
-      // Create circuit lines
-      function createCircuitLines() {
-        const body = document.body;
-        for (let i = 0; i < 15; i++) {
-          const line = document.createElement('div');
-          line.className = 'circuit-line';
-          
-          const isHorizontal = Math.random() > 0.5;
-          if (isHorizontal) {
-            line.style.width = Math.random() * 200 + 100 + 'px';
-            line.style.height = '1px';
-            line.style.top = Math.random() * 100 + '%';
-            line.style.left = Math.random() * 100 + '%';
-          } else {
-            line.style.width = '1px';
-            line.style.height = Math.random() * 200 + 100 + 'px';
-            line.style.top = Math.random() * 100 + '%';
-            line.style.left = Math.random() * 100 + '%';
-          }
-          
-          body.appendChild(line);
-          
-          gsap.to(line, {
-            opacity: 0.15,
-            duration: 2 + Math.random() * 2,
-            repeat: -1,
-            yoyo: true,
-            delay: Math.random() * 2
-          });
-        }
-      }
-      
-      createCircuitLines();
-      
-      // Global floating particles
-      function createGlobalParticles() {
-        const body = document.body;
-        for (let i = 0; i < 50; i++) {
-          const particle = document.createElement('div');
-          particle.className = 'global-particle';
-          particle.style.left = Math.random() * 100 + '%';
-          particle.style.top = Math.random() * 100 + '%';
-          body.appendChild(particle);
-          
-          gsap.to(particle, {
-            y: -100 - Math.random() * 200,
-            x: (Math.random() - 0.5) * 100,
-            opacity: 0,
-            duration: 5 + Math.random() * 5,
-            ease: 'power1.out',
-            repeat: -1,
-            delay: Math.random() * 5
-          });
-        }
-      }
-      
-      createGlobalParticles();
-      
-      // TERMINAL ANIMATION
-      gsap.to('.terminal-line', {
-        opacity: 1,
-        duration: 0.1,
-        stagger: 0.3,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.terminal-section',
-          start: 'top 60%'
-        }
-      });
-      
-      // STATS COUNTER ANIMATION
-      gsap.utils.toArray('.stat-number').forEach((stat) => {
-        ScrollTrigger.create({
-          trigger: stat,
-          start: 'top 80%',
-          onEnter: () => {
-            gsap.from(stat, {
-              textContent: 0,
-              duration: 2,
-              ease: 'power2.out',
-              snap: { textContent: 1 }
-            });
-          }
-        });
-      });
-      
-      // VIDEO SCRUB LOGIC - CONTINUOUS PLAYBACK BASED ON SCROLL SPEED
-      const video = document.getElementById('scrub-video');
-      const progressIndicator = document.getElementById('progress-indicator');
-      
-      let scrollSpeed = 0;
-      let lastScrollY = window.scrollY;
-      let isVideoReady = false;
-      
-      // Ensure video is ready
-      video.load();
-      
-      video.addEventListener('loadedmetadata', () => {
-        video.style.display = 'block';
-        document.querySelector('.video-placeholder').style.display = 'none';
-        isVideoReady = true;
-        video.playbackRate = 1;
-      });
-      
-      // Pin video container and track scroll
-      ScrollTrigger.create({
-        trigger: '#video-section',
-        start: 'top top',
-        end: 'bottom bottom',
-        pin: '.video-container',
-        anticipatePin: 1,
-        onUpdate: (self) => {
-          if (!isVideoReady) return;
-          
-          // Calculate scroll speed
-          const currentScrollY = window.scrollY;
-          scrollSpeed = Math.abs(currentScrollY - lastScrollY);
-          lastScrollY = currentScrollY;
-          
-          // Update progress indicator
-          const progress = (self.progress * 100).toFixed(2);
-          progressIndicator.textContent = progress + '%';
-          
-          // Play video based on scroll speed
-          if (scrollSpeed > 0) {
-            // Map scroll speed to playback rate (faster scroll = faster video)
-            const playbackRate = Math.min(scrollSpeed / 5, 3); // Max 3x speed
-            video.playbackRate = Math.max(playbackRate, 0.5); // Min 0.5x speed
-            
-            if (video.paused) {
-              video.play().catch(() => {});
-            }
-          } else {
-            // Slow down when not scrolling
-            video.playbackRate = 0.25;
-          }
-          
-          // Loop video if it reaches the end
-          if (video.currentTime >= video.duration - 0.1) {
-            video.currentTime = 0;
-          }
-        }
-      });
-      
-      // Reset scroll speed detection
-      let scrollTimeout;
-      window.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-          scrollSpeed = 0;
-          if (isVideoReady && !video.paused) {
-            video.pause();
-          }
-        }, 150);
-      });
-      
-      // Fallback if video doesn't load
-      setTimeout(() => {
-        if (video.readyState < 2) {
-          console.log('Video not loaded, check file path: scrollvideo.mp4');
-        }
-      }, 3000);
-      
-      // GRID SECTIONS ANIMATION
-      gsap.utils.toArray('.grid-item').forEach((item) => {
-        gsap.from(item, {
-          y: 100,
-          opacity: 0,
-          duration: 1.2,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 80%',
-            end: 'top 50%',
-            scrub: 1
-          }
-        });
-      });
-      
-      // DATA BLOCKS PARALLAX
-      gsap.utils.toArray('.data-block').forEach((block) => {
-        gsap.to(block, {
-          y: -50,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: block,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 2
-          }
-        });
-      });
-      
-      // FOOTER ANIMATION
-      gsap.from('footer', {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        ease: 'power4.out',
-        scrollTrigger: {
-          trigger: 'footer',
-          start: 'top 90%'
-        }
-      });
-    });
-  </script>
+      <main class="site-main">
+        <section class="section section--hero reveal reveal-on-scroll reveal-section animate-section" id="hero" data-reveal="section">
+          <div class="hero">
+            <canvas id="veinCanvas" class="parallax-layer" data-speed="0.6" aria-hidden="true"></canvas>
+            <div class="container hero__container">
+              <div class="layout-grid hero__grid">
+                <div class="hero__content stack-lg">
+                  <h1 class="hero__title text-tight wipe-text reveal parallax-layer scroll-highlight reveal-text animate-text" data-speed="0.85" data-reveal-item data-wipe-target>Why Choose Us</h1>
+                  <p class="hero__subtitle text-body-large reveal parallax-layer reveal-text animate-text" data-speed="0.92" data-reveal-item>We empower businesses with technology that feels simple, fast, and human-centered.</p>
+                  <ul class="stack-xs text-body-regular text-muted reveal parallax-layer reveal-text animate-text" data-speed="0.94" data-reveal-item>
+                    <li>Speed with Quality</li>
+                    <li>Global Credibility</li>
+                    <li>Thoughtful &amp; Human-Centered Design</li>
+                    <li>Scalable Solutions Built for Growth</li>
+                    <li>Reliable Systems That Reduce Complexity</li>
+                  </ul>
+                  <div class="hero__cta-group parallax-layer" data-speed="0.97">
+                    <a class="hero__cta hero__cta--primary reveal reveal-button animate-button" data-reveal-item href="#contact">Schedule a Consultation</a>
+                    <a class="hero__cta hero__cta--secondary reveal reveal-button animate-button" data-reveal-item href="#services">View Capabilities</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
+        <section class="section section--surface section--identity reveal reveal-on-scroll reveal-section animate-section" id="identity" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[FARVIEW_IDENTITY]</span>
+                <h2 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Technology that feels calm.</h2>
+                <p class="identity-support text-body-large reveal reveal-text animate-text" data-reveal-item>We build systems that stay out of the way. Clear interfaces, dependable pipelines, and human-centered decisions that scale globally.</p>
+              </header>
+              <div class="section__body">
+                <ul class="identity-advantages">
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Engineered for Clarity</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>We simplify workflows and interfaces so teams can act with confidence and speed.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Reliability by Default</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>Systems are built to be stable, observable, and resilient under real operating pressure.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Human-Centered Delivery</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>We design for the people who use it and the people who maintain it.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Global, Precision-Run</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>Born in Texas, serving worldwide with disciplined execution across time zones.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Calm Systems, Fast Outcomes</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>Performance and velocity without noise, rework, or brittle shortcuts.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Security and Trust</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>We treat reliability and security as product features, not add-ons.</p>
+                  </li>
+                  <li class="identity-adv">
+                    <h3 class="identity-adv__title reveal reveal-text animate-text" data-reveal-item>Built to Scale</h3>
+                    <p class="identity-adv__desc reveal reveal-text animate-text" data-reveal-item>From prototype to platform, we architect for growth without unnecessary complexity.</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal-on-scroll reveal-section animate-section" id="feature-sections" data-section="FEATURE_SECTIONS">
+          <div class="container">
+            <div class="stack-lg story-block">
+              <header class="section__heading">
+                <span class="section__label text-uppercase text-muted reveal-text animate-text">[FEATURE_SECTIONS]</span>
+              </header>
+              <div class="feature-sections stack-lg">
+                <section class="feature-section stack-md" data-feature-section="SYSTEM_TERMINAL">
+                  <header class="feature-section__heading stack-xs">
+                    <span class="text-uppercase text-muted animate-text">System Terminal</span>
+                  </header>
+                  <div class="feature-section__body stack-xs text-body-regular">
+                    <div class="fv-terminal" data-fv-terminal>
+                      <div class="fv-terminal__output" data-fv-terminal-output aria-live="polite"></div>
+                      <div class="fv-terminal__suggest" data-fv-terminal-suggest></div>
+                      <div class="fv-terminal__inputline" data-fv-terminal-inputline>
+                        <span class="fv-terminal__prompt" aria-hidden="true">farview@core:~$</span>
+                        <span class="fv-terminal__typed" data-fv-terminal-typed></span>
+                        <span class="fv-terminal__ghost" data-fv-terminal-ghost aria-hidden="true"></span>
+                        <span class="fv-terminal__caret" aria-hidden="true"></span>
+                        <input class="fv-terminal__input" data-fv-terminal-input type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command input" />
+                      </div>
+                      <div class="fv-terminal__meta text-muted">Type <span class="text-gold">help</span> for available commands. Use <span class="text-gold">Tab</span> to autocomplete.</div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal reveal-on-scroll reveal-section animate-section" id="credibility" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[TRUSTED_PARTNERS]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Global partners who rely on us</h2>
+              </header>
+              <div class="section__body stack-md">
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Placeholder for client roster and credibility artifacts.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--stats reveal reveal-on-scroll reveal-section animate-section" id="stats" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[STATS]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Impact Metrics</h2>
+              </header>
+              <div class="section__body">
+                <ul>
+                  <li class="stat-item reveal-tile">
+                    <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="25">25</span>
+                    <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Countries Served</span>
+                  </li>
+                  <li class="stat-item reveal-tile">
+                    <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="500">500</span>
+                    <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Projects Delivered</span>
+                  </li>
+                  <li class="stat-item reveal-tile">
+                    <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="12">12</span>
+                    <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Areas of Expertise</span>
+                  </li>
+                  <li class="stat-item reveal-tile">
+                    <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="99.9">99.9</span>
+                    <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Client Satisfaction</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal reveal-on-scroll reveal-section animate-section" id="positioning" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[POSITIONING]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>We are best known for making software that gets software out of the way.</h2>
+              </header>
+            </div>
+          </div>
+        </section>
+
+        <section class="section reveal reveal-on-scroll reveal-section animate-section" id="services" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CORE_SERVICES]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>What We Deliver</h2>
+              </header>
+              <div class="section__body">
+                <ul class="stack-lg">
+                  <li class="interactive-tile stack-md reveal-tile">
+                    <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Custom Software Development</h3>
+                    <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Tailored solutions built from the ground up to solve your unique business challenges.</p>
+                    <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Enterprise resource planning systems</p>
+                  </li>
+                  <li class="interactive-tile stack-md reveal-tile">
+                    <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Cloud &amp; DevOps</h3>
+                    <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Scalable infrastructure and automated deployment pipelines for modern applications.</p>
+                    <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Multi-cloud Kubernetes orchestration</p>
+                  </li>
+                  <li class="interactive-tile stack-md reveal-tile">
+                    <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>AI &amp; Data Engineering</h3>
+                    <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Machine learning models and data pipelines that turn information into actionable insights.</p>
+                    <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Predictive analytics for customer behavior</p>
+                  </li>
+                  <li class="interactive-tile stack-md reveal-tile">
+                    <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Enterprise Mobility &amp; Web Apps</h3>
+                    <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Cross-platform applications that deliver consistent experiences across all devices.</p>
+                    <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Progressive web apps with offline capability</p>
+                  </li>
+                  <li class="interactive-tile stack-md reveal-tile">
+                    <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Dedicated Engineering Teams</h3>
+                    <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Experienced professionals who integrate seamlessly with your existing workflows.</p>
+                    <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Full-stack teams for rapid product development</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section reveal reveal-on-scroll reveal-section animate-section" id="case-studies" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CASE_STUDIES]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Success Stories</h2>
+              </header>
+              <div class="section__body stack-lg">
+                <article class="interactive-tile stack-sm reveal-tile">
+                  <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Healthcare - Patient Management Revolution</h3>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Reduced administrative overhead by 40% through intelligent automation and streamlined workflows for a major hospital network.</p>
+                  <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>40% efficiency gain · 6-month delivery</p>
+                </article>
+                <article class="interactive-tile stack-sm reveal-tile">
+                  <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>FinTech - Real-Time Trading Platform</h3>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Built a high-frequency trading system processing millions of transactions with sub-millisecond latency.</p>
+                  <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>&lt;1ms latency · 99.99% uptime</p>
+                </article>
+                <article class="interactive-tile stack-sm reveal-tile">
+                  <h3 class="wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Retail - Omnichannel Commerce Engine</h3>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Unified online and offline experiences, increasing conversion rates by 35% for a global retail brand.</p>
+                  <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>35% conversion lift · 8 markets</p>
+                </article>
+                <section aria-label="Testimonials" class="stack-md story-block">
+                  <h3 class="text-tight wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Client Perspectives</h3>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>“FarviewGlobal transformed our legacy systems into a modern, scalable platform. Their team's expertise was evident at every stage.” - Sarah Chen, CTO at MedTech Solutions</p>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>“The dedicated team we got from FarviewGlobal felt like an extension of our own. They delivered beyond expectations.” - Michael Rodriguez, VP Engineering at FinanceHub</p>
+                  <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>“They don't just write code-they solve business problems. Our ROI was positive within the first quarter.” - Jennifer Park, CEO at RetailNow</p>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal reveal-on-scroll reveal-section animate-section" id="chronicle" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CINEMATIC_CHRONICLE]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Chronicle of the Build</h2>
+              </header>
+              <div class="section__body stack-lg">
+                <div class="cinematic-video-block reveal-tile">
+                  <div class="cinematic-video-frame">
+                    <video
+                      id="timelineCinematicVideo"
+                      class="cinematic-video"
+                      muted
+                      playsinline
+                      preload="metadata"
+                      poster="media/story-circuit-poster.jpg"
+                    >
+                      <source src="scroll.mp4" type="video/mp4" />
+                    </video>
+                    <div class="cinematic-video-overlay"></div>
+                  </div>
+                  <div class="cinematic-video-caption stack-sm">
+                    <p class="text-body-large">Scroll to traverse prototype milestones, from concept ignition to systems activation.</p>
+                    <p class="text-muted text-body-regular">Timeline index: 01 - Signal Mapping · 02 - Neural Mesh · 03 - Deployment Arrays</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal reveal-on-scroll reveal-section animate-section" id="systems" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[001_ARCHITECTURE]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Precision Engineering</h2>
+              </header>
+              <div class="section__body stack-md">
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Every element calculated. Every interaction measured. A system built on mathematical principles and architectural integrity.</p>
+                <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>SYSTEM METRICS - UPTIME: 99.97% · LATENCY: &lt;12ms · THROUGHPUT: 2.4TB/s · NODES: 847 ACTIVE · STATUS: OPERATIONAL</p>
+                <div class="micro-video-module" data-micro-video>
+                  <video
+                    class="micro-video"
+                    id="microDetailVideo"
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    poster="media/micro-reactor-poster.jpg"
+                  >
+                    <source src="scroll.mp4" type="video/mp4" />
+                  </video>
+                  <p class="text-muted text-body-regular">Hover or linger to watch the power core breathe.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section reveal reveal-on-scroll reveal-section animate-section" id="infrastructure" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[002_INFRASTRUCTURE]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Distributed Network</h2>
+              </header>
+              <div class="section__body stack-md">
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>A decentralized architecture spanning global nodes. Fault-tolerant, self-healing, and perpetually optimizing.</p>
+                <p class="text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>PROTOCOL_INDEX - 01: NEURAL_SYNC · 02: GRID_COMPUTE · 03: CACHE_LAYER · 04: EDGE_NODE · ACCESS: GRANTED</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section reveal reveal-on-scroll reveal-section animate-section" id="contact" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CALL_TO_ACTION]</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Got an idea? Let's make it real.</h2>
+              </header>
+              <div class="section__body stack-md">
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Schedule your free consultation and discover how we can transform your vision into reality.</p>
+                <a class="hero__cta hero__cta--primary reveal reveal-button animate-button" data-reveal-item href="/contact">Start Your Project</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer" aria-label="Footer">
+        <div class="container">
+          <div class="site-footer__shell">
+            <div class="footer-columns site-footer__columns">
+              <section class="site-footer__col stack-sm" aria-label="Navigation">
+                <h2 class="text-uppercase text-muted">[NAVIGATION]</h2>
+                <ul class="stack-xs">
+                  <li><a href="#hero">Home</a></li>
+                  <li><a href="#services">Services</a></li>
+                  <li><a href="#case-studies">Case Studies</a></li>
+                  <li><a href="#contact">Contact</a></li>
+                </ul>
+              </section>
+              <section class="site-footer__col stack-sm" aria-label="Services">
+                <h2 class="text-uppercase text-muted">[SERVICES]</h2>
+                <ul class="stack-xs">
+                  <li><a href="#services">Custom Software</a></li>
+                  <li><a href="#services">Cloud &amp; DevOps</a></li>
+                  <li><a href="#services">AI &amp; Data</a></li>
+                  <li><a href="#services">Mobility &amp; Web</a></li>
+                  <li><a href="#services">Engineering Teams</a></li>
+                </ul>
+              </section>
+              <section class="site-footer__col stack-sm" aria-label="Company">
+                <h2 class="text-uppercase text-muted">[COMPANY]</h2>
+                <ul class="stack-xs">
+                  <li><a href="#about">About</a></li>
+                  <li><a href="#careers">Careers</a></li>
+                  <li><a href="#press">Press Kit</a></li>
+                  <li><a href="#legal">Legal</a></li>
+                </ul>
+              </section>
+              <section class="site-footer__col stack-sm" aria-label="Connect">
+                <h2 class="text-uppercase text-muted">[CONNECT]</h2>
+                <ul class="stack-xs">
+                  <li><a href="#github">GitHub</a></li>
+                  <li><a href="#twitter">Twitter</a></li>
+                  <li><a href="#linkedin">LinkedIn</a></li>
+                </ul>
+                <ul class="stack-xs">
+                  <li><a href="mailto:contact@farviewglobal.io">contact@farviewglobal.io</a></li>
+                  <li><a href="tel:+15558470001">+1 (555) 847-0001</a></li>
+                </ul>
+              </section>
+            </div>
+            <div class="footer-meta site-footer__meta">
+              <p class="text-uppercase">ALL SYSTEMS OPERATIONAL</p>
+              <p>PROTOCOL v2.4.7 · BUILD 8472</p>
+              <p>© 2025 FarviewGlobal</p>
+            </div>
+            <div class="site-footer__accent" aria-hidden="true"></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  <script src="animations.js" defer></script>
+  <script src="js/hero-video.js" defer></script>
+  <script src="js/ambient-effects.js" defer></script>
+  <script src="js/veins.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
