@@ -232,7 +232,7 @@
                         <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Areas of Expertise</span>
                       </li>
                       <li class="stat-item reveal-tile">
-                        <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="99.9">99.9</span>
+                        <span class="stat-value wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target data-stat-target="99.9">99.9%</span>
                         <span class="stat-label text-body-regular reveal reveal-text animate-text" data-reveal-item>Client Satisfaction</span>
                       </li>
                     </ul>
@@ -266,7 +266,7 @@
         <section class="section section--surface section--positioning" id="positioning" data-reveal="section">
           <div class="container">
             <div class="positioning__inner" aria-label="Positioning statement">
-              <p class="positioning__statement">We are best known for making software that gets software <span class="positioning__accent">out of the way</span>.</p>
+              <p class="positioning__statement"><span class="positioning__rest">We are best known for making software that gets software </span><span class="positioning__accent">out of the way</span><span class="positioning__rest">.</span></p>
             </div>
           </div>
         </section>
@@ -279,99 +279,120 @@
                 <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>What We Deliver</h2>
               </header>
               <div class="section__body">
-                <div class="op-matrix" aria-label="Operational Matrix">
-                  <div class="op-matrix__meta reveal reveal-text animate-text" data-reveal-item>
-                    <span class="op-matrix__meta-label">[OPERATIONAL_MATRIX]</span>
-                    <span class="op-matrix__meta-readout text-muted">CAPABILITY_COLUMNS: 04 · DELIVERY_UNITS: 05 · STATUS: READY</span>
-                  </div>
+                <div class="services-rail" data-services-rail aria-label="What We Deliver">
+                  <div class="services-rail__layout">
+                    <nav class="services-rail__rail" aria-label="Service categories">
+                      <ul class="services-rail__list" role="list">
+                        <li class="services-rail__item">
+                          <button class="services-rail__trigger is-active" type="button" data-services-trigger="software" aria-controls="services-panel-software" aria-expanded="true">Software</button>
+                        </li>
+                        <li class="services-rail__item">
+                          <button class="services-rail__trigger" type="button" data-services-trigger="ai" aria-controls="services-panel-ai" aria-expanded="false">AI &amp; Data</button>
+                        </li>
+                        <li class="services-rail__item">
+                          <button class="services-rail__trigger" type="button" data-services-trigger="cloud" aria-controls="services-panel-cloud" aria-expanded="false">Cloud &amp; DevOps</button>
+                        </li>
+                        <li class="services-rail__item">
+                          <button class="services-rail__trigger" type="button" data-services-trigger="product" aria-controls="services-panel-product" aria-expanded="false">Product &amp; Teams</button>
+                        </li>
+                      </ul>
+                    </nav>
 
-                  <div class="op-matrix__grid" aria-label="Capabilities and deliverables">
-                    <section class="op-matrix__col op-matrix__col--software" aria-label="Software">
-                      <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                        <span class="op-matrix__head-label">[MODULE]</span>
-                        <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-                          <path d="M8 8L4 12l4 4" />
-                          <path d="M16 8l4 4-4 4" />
-                          <path d="M14 6l-4 12" />
-                        </svg>
-                        <span class="op-matrix__head-title">Software</span>
-                      </header>
-                      <div class="op-matrix__items" aria-label="Software deliverables">
-                        <div class="op-matrix__item reveal" data-reveal-item>
-                          <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Custom Software Development</h3>
-                          <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Tailored solutions built from the ground up to solve your unique business challenges.</p>
-                          <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Enterprise resource planning systems</p>
-                        </div>
-                        <div class="op-matrix__item reveal" data-reveal-item>
-                          <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Enterprise Mobility &amp; Web Apps</h3>
-                          <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Cross-platform applications that deliver consistent experiences across all devices.</p>
-                          <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Progressive web apps with offline capability</p>
-                        </div>
+                    <div class="services-rail__panel" aria-label="Service details">
+                      <div class="op-matrix__meta reveal reveal-text animate-text" data-reveal-item>
+                        <span class="op-matrix__meta-label">[OPERATIONAL_MATRIX]</span>
+                        <span class="op-matrix__meta-readout text-muted">CAPABILITY_COLUMNS: 04 · DELIVERY_UNITS: 05 · STATUS: READY</span>
                       </div>
-                    </section>
 
-                    <section class="op-matrix__col op-matrix__col--ai" aria-label="AI and Data">
-                      <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                        <span class="op-matrix__head-label">[MODULE]</span>
-                        <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-                          <path d="M7 7h10v10H7z" />
-                          <path d="M9 12h6" />
-                          <path d="M12 9v6" />
-                          <path d="M7 12H4" />
-                          <path d="M20 12h-3" />
-                          <path d="M12 7V4" />
-                          <path d="M12 20v-3" />
-                        </svg>
-                        <span class="op-matrix__head-title">AI &amp; Data</span>
-                      </header>
-                      <div class="op-matrix__items" aria-label="AI and Data deliverables">
-                        <div class="op-matrix__item reveal" data-reveal-item>
-                          <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>AI &amp; Data Engineering</h3>
-                          <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Machine learning models and data pipelines that turn information into actionable insights.</p>
-                          <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Predictive analytics for customer behavior</p>
-                        </div>
-                      </div>
-                    </section>
+                      <div class="services-rail__panel-stack" data-services-stack>
+                        <section class="services-rail__panel-item is-active" id="services-panel-software" data-services-panel="software" role="region" aria-label="Software">
+                          <header class="op-matrix__head reveal animate-text" data-reveal-item>
+                            <span class="op-matrix__head-label">[MODULE]</span>
+                            <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                              <path d="M8 8L4 12l4 4" />
+                              <path d="M16 8l4 4-4 4" />
+                              <path d="M14 6l-4 12" />
+                            </svg>
+                            <span class="op-matrix__head-title">Software</span>
+                          </header>
+                          <div class="op-matrix__items" aria-label="Software deliverables">
+                            <div class="op-matrix__item reveal" data-reveal-item>
+                              <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Custom Software Development</h3>
+                              <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Tailored solutions built from the ground up to solve your unique business challenges.</p>
+                              <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Enterprise resource planning systems</p>
+                            </div>
+                            <div class="op-matrix__item reveal" data-reveal-item>
+                              <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Enterprise Mobility &amp; Web Apps</h3>
+                              <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Cross-platform applications that deliver consistent experiences across all devices.</p>
+                              <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Progressive web apps with offline capability</p>
+                            </div>
+                          </div>
+                        </section>
 
-                    <section class="op-matrix__col op-matrix__col--cloud" aria-label="Cloud and DevOps">
-                      <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                        <span class="op-matrix__head-label">[MODULE]</span>
-                        <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-                          <path d="M8.5 18H7a4 4 0 0 1 0-8 5.5 5.5 0 0 1 10.6 1.6A3.5 3.5 0 0 1 17.5 18H15" />
-                          <path d="M12 11v8" />
-                          <path d="M9.5 16L12 19l2.5-3" />
-                        </svg>
-                        <span class="op-matrix__head-title">Cloud &amp; DevOps</span>
-                      </header>
-                      <div class="op-matrix__items" aria-label="Cloud and DevOps deliverables">
-                        <div class="op-matrix__item reveal" data-reveal-item>
-                          <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Cloud &amp; DevOps</h3>
-                          <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Scalable infrastructure and automated deployment pipelines for modern applications.</p>
-                          <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Multi-cloud Kubernetes orchestration</p>
-                        </div>
-                      </div>
-                    </section>
+                        <section class="services-rail__panel-item" id="services-panel-ai" data-services-panel="ai" role="region" aria-label="AI and Data">
+                          <header class="op-matrix__head reveal animate-text" data-reveal-item>
+                            <span class="op-matrix__head-label">[MODULE]</span>
+                            <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                              <path d="M7 7h10v10H7z" />
+                              <path d="M9 12h6" />
+                              <path d="M12 9v6" />
+                              <path d="M7 12H4" />
+                              <path d="M20 12h-3" />
+                              <path d="M12 7V4" />
+                              <path d="M12 20v-3" />
+                            </svg>
+                            <span class="op-matrix__head-title">AI &amp; Data</span>
+                          </header>
+                          <div class="op-matrix__items" aria-label="AI and Data deliverables">
+                            <div class="op-matrix__item reveal" data-reveal-item>
+                              <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>AI &amp; Data Engineering</h3>
+                              <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Machine learning models and data pipelines that turn information into actionable insights.</p>
+                              <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Predictive analytics for customer behavior</p>
+                            </div>
+                          </div>
+                        </section>
 
-                    <section class="op-matrix__col op-matrix__col--product" aria-label="Product and Teams">
-                      <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                        <span class="op-matrix__head-label">[MODULE]</span>
-                        <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-                          <path d="M6 7h12" />
-                          <path d="M6 12h12" />
-                          <path d="M6 17h12" />
-                          <path d="M9 7v10" />
-                          <path d="M15 12v5" />
-                        </svg>
-                        <span class="op-matrix__head-title">Product &amp; Teams</span>
-                      </header>
-                      <div class="op-matrix__items" aria-label="Product and Teams deliverables">
-                        <div class="op-matrix__item reveal" data-reveal-item>
-                          <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Dedicated Engineering Teams</h3>
-                          <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Experienced professionals who integrate seamlessly with your existing workflows.</p>
-                          <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Full-stack teams for rapid product development</p>
-                        </div>
+                        <section class="services-rail__panel-item" id="services-panel-cloud" data-services-panel="cloud" role="region" aria-label="Cloud and DevOps">
+                          <header class="op-matrix__head reveal animate-text" data-reveal-item>
+                            <span class="op-matrix__head-label">[MODULE]</span>
+                            <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                              <path d="M8.5 18H7a4 4 0 0 1 0-8 5.5 5.5 0 0 1 10.6 1.6A3.5 3.5 0 0 1 17.5 18H15" />
+                              <path d="M12 11v8" />
+                              <path d="M9.5 16L12 19l2.5-3" />
+                            </svg>
+                            <span class="op-matrix__head-title">Cloud &amp; DevOps</span>
+                          </header>
+                          <div class="op-matrix__items" aria-label="Cloud and DevOps deliverables">
+                            <div class="op-matrix__item reveal" data-reveal-item>
+                              <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Cloud &amp; DevOps</h3>
+                              <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Scalable infrastructure and automated deployment pipelines for modern applications.</p>
+                              <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Multi-cloud Kubernetes orchestration</p>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section class="services-rail__panel-item" id="services-panel-product" data-services-panel="product" role="region" aria-label="Product and Teams">
+                          <header class="op-matrix__head reveal animate-text" data-reveal-item>
+                            <span class="op-matrix__head-label">[MODULE]</span>
+                            <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                              <path d="M6 7h12" />
+                              <path d="M6 12h12" />
+                              <path d="M6 17h12" />
+                              <path d="M9 7v10" />
+                              <path d="M15 12v5" />
+                            </svg>
+                            <span class="op-matrix__head-title">Product &amp; Teams</span>
+                          </header>
+                          <div class="op-matrix__items" aria-label="Product and Teams deliverables">
+                            <div class="op-matrix__item reveal" data-reveal-item>
+                              <h3 class="op-matrix__item-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Dedicated Engineering Teams</h3>
+                              <p class="op-matrix__item-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Experienced professionals who integrate seamlessly with your existing workflows.</p>
+                              <p class="op-matrix__item-note text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>Example: Full-stack teams for rapid product development</p>
+                            </div>
+                          </div>
+                        </section>
                       </div>
-                    </section>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -388,42 +409,59 @@
               </header>
               <div class="section__body signal-scan__body">
                 <div class="signal-scan__shell" aria-label="Signal Scan">
-                  <div class="signal-scan__rail" aria-label="Scan rail">
-                    <button class="signal-scan__control" type="button" aria-label="Previous success story" data-signal-prev>
-                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                        <path d="M14 6l-6 6 6 6" />
-                      </svg>
-                    </button>
-                    <div class="signal-scan__viewport" data-signal-viewport aria-label="Stories">
-                      <ol class="signal-scan__track" data-signal-track>
-                        <li class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="0" data-client="0" aria-label="Healthcare case study">
-                          <div class="signal-scan__scanline" aria-hidden="true"></div>
-                          <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Healthcare - Patient Management Revolution</h3>
-                          <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Reduced administrative overhead by 40% through intelligent automation and streamlined workflows for a major hospital network.</p>
-                          <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>40% efficiency gain · 6-month delivery</p>
-                        </li>
-                        <li class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="1" data-client="1" aria-label="FinTech case study">
-                          <div class="signal-scan__scanline" aria-hidden="true"></div>
-                          <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>FinTech - Real-Time Trading Platform</h3>
-                          <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Built a high-frequency trading system processing millions of transactions with sub-millisecond latency.</p>
-                          <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>&lt;1ms latency · 99.99% uptime</p>
-                        </li>
-                        <li class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="2" data-client="2" aria-label="Retail case study">
-                          <div class="signal-scan__scanline" aria-hidden="true"></div>
-                          <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Retail - Omnichannel Commerce Engine</h3>
-                          <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Unified online and offline experiences, increasing conversion rates by 35% for a global retail brand.</p>
-                          <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>35% conversion lift · 8 markets</p>
-                        </li>
-                      </ol>
+                  <section class="signal-scan__panel signal-scan__panel--story" aria-label="Success story">
+                    <div class="signal-scan__panel-head" aria-label="Story controls">
+                      <h3 class="text-tight wipe-text reveal scroll-highlight reveal-text animate-text signal-scan__panel-title" data-reveal-item data-wipe-target>Success Story</h3>
+                      <div class="signal-scan__panel-controls" aria-label="Story navigation">
+                        <button class="signal-scan__control" type="button" aria-label="Previous success story" data-signal-prev>
+                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                            <path d="M14 6l-6 6 6 6" />
+                          </svg>
+                        </button>
+                        <button class="signal-scan__control" type="button" aria-label="Next success story" data-signal-next>
+                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                            <path d="M10 6l6 6-6 6" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    <button class="signal-scan__control" type="button" aria-label="Next success story" data-signal-next>
-                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                        <path d="M10 6l6 6-6 6" />
-                      </svg>
-                    </button>
-                  </div>
 
-                  <aside class="signal-scan__perspective" aria-label="Client Perspectives">
+                    <div class="signal-scan__story-stage" data-signal-stage aria-label="Stories">
+                      <article class="signal-scan__story reveal is-active" data-reveal-item data-signal-story data-index="0" data-client="0" aria-label="Healthcare case study">
+                        <svg class="signal-scan__story-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                          <path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z" />
+                        </svg>
+                        <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Healthcare - Patient Management Revolution</h3>
+                        <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Reduced administrative overhead by 40% through intelligent automation and streamlined workflows for a major hospital network.</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>40% efficiency gain · 6-month delivery</p>
+                      </article>
+                      <article class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="1" data-client="1" aria-label="FinTech case study">
+                        <svg class="signal-scan__story-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                          <path d="M6 16V8" />
+                          <path d="M10 16V6" />
+                          <path d="M14 16v-5" />
+                          <path d="M18 16v-8" />
+                          <path d="M4 18h16" />
+                        </svg>
+                        <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>FinTech - Real-Time Trading Platform</h3>
+                        <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Built a high-frequency trading system processing millions of transactions with sub-millisecond latency.</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>&lt;1ms latency · 99.99% uptime</p>
+                      </article>
+                      <article class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="2" data-client="2" aria-label="Retail case study">
+                        <svg class="signal-scan__story-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                          <path d="M6 7h15l-1.2 12H7.2L6 7z" />
+                          <path d="M9 7V6a3 3 0 0 1 6 0v1" />
+                          <path d="M9 11h0" />
+                          <path d="M15 11h0" />
+                        </svg>
+                        <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Retail - Omnichannel Commerce Engine</h3>
+                        <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Unified online and offline experiences, increasing conversion rates by 35% for a global retail brand.</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>35% conversion lift · 8 markets</p>
+                      </article>
+                    </div>
+                  </section>
+
+                  <aside class="signal-scan__panel signal-scan__panel--perspective" aria-label="Client Perspectives">
                     <h3 class="text-tight wipe-text reveal scroll-highlight reveal-text animate-text signal-scan__perspective-title" data-reveal-item data-wipe-target>Client Perspectives</h3>
                     <div class="signal-scan__perspective-shell" data-signal-perspective>
                       <div class="signal-scan__client">

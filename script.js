@@ -731,27 +731,225 @@ function initScrollReveal({ useScrollTrigger = false } = {}) {
   sections.forEach((section) => observer.observe(section));
 }
 
+function initPositioningReveal() {
+  const section = document.getElementById('positioning');
+  if (!section) return;
+  if (!section.classList.contains('section--positioning')) return;
+
+  if (section.classList.contains('reveal-active')) return;
+
+  const activate = () => {
+    section.classList.add('reveal-active');
+  };
+
+  if (PREFERS_REDUCED_MOTION || !('IntersectionObserver' in window)) {
+    activate();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        activate();
+        obs.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.25,
+    rootMargin: '0px 0px -20% 0px'
+  });
+
+  observer.observe(section);
+}
+
+function initServicesRail() {
+  const section = document.querySelector('[data-services-rail]');
+  if (!section) return;
+
+  const triggers = Array.from(section.querySelectorAll('[data-services-trigger]'));
+  const panels = Array.from(section.querySelectorAll('[data-services-panel]'));
+  if (!triggers.length || !panels.length) return;
+
+  const panelMap = new Map();
+  panels.forEach((panel) => {
+    const key = panel.getAttribute('data-services-panel');
+    if (!key) return;
+    panelMap.set(key, panel);
+  });
+
+  const stack = section.querySelector('[data-services-stack]');
+  if (stack) {
+    const measurer = document.createElement('div');
+    measurer.style.position = 'absolute';
+    measurer.style.left = '0';
+    measurer.style.top = '0';
+    measurer.style.width = '100%';
+    measurer.style.visibility = 'hidden';
+    measurer.style.pointerEvents = 'none';
+    measurer.style.opacity = '0';
+    stack.appendChild(measurer);
+
+    let maxHeight = 0;
+    panels.forEach((panel) => {
+      const clone = panel.cloneNode(true);
+      clone.classList.add('is-active');
+      clone.style.position = 'static';
+      clone.style.inset = 'auto';
+      clone.style.transform = 'none';
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+      clone.style.pointerEvents = 'none';
+      clone.style.transition = 'none';
+      measurer.appendChild(clone);
+      maxHeight = Math.max(maxHeight, clone.offsetHeight);
+      measurer.removeChild(clone);
+    });
+
+    stack.removeChild(measurer);
+    if (Number.isFinite(maxHeight) && maxHeight > 0) {
+      stack.style.minHeight = `${maxHeight}px`;
+    }
+  }
+
+  triggers.forEach((trigger, index) => {
+    trigger.setAttribute('tabindex', trigger.classList.contains('is-active') ? '0' : '-1');
+    trigger.setAttribute('data-services-index', String(index));
+  });
+
+  let activeKey = null;
+  const activeTrigger = triggers.find((t) => t.classList.contains('is-active')) || triggers[0];
+  if (activeTrigger) {
+    activeKey = activeTrigger.getAttribute('data-services-trigger');
+  }
+
+  const setActive = (key, { focusTrigger = false } = {}) => {
+    if (!key || key === activeKey) return;
+    const nextPanel = panelMap.get(key);
+    const nextTrigger = triggers.find((t) => t.getAttribute('data-services-trigger') === key);
+    if (!nextPanel || !nextTrigger) return;
+
+    const currentPanel = activeKey ? panelMap.get(activeKey) : null;
+    const currentTrigger = activeKey ? triggers.find((t) => t.getAttribute('data-services-trigger') === activeKey) : null;
+
+    if (currentTrigger) {
+      currentTrigger.classList.remove('is-active');
+      currentTrigger.setAttribute('aria-expanded', 'false');
+      currentTrigger.setAttribute('tabindex', '-1');
+    }
+    if (currentPanel) {
+      currentPanel.classList.remove('is-active');
+      currentPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    nextTrigger.classList.add('is-active');
+    nextTrigger.setAttribute('aria-expanded', 'true');
+    nextTrigger.setAttribute('tabindex', '0');
+
+    nextPanel.classList.add('is-active');
+    nextPanel.setAttribute('aria-hidden', 'false');
+
+    activeKey = key;
+
+    if (focusTrigger) {
+      nextTrigger.focus({ preventScroll: true });
+    }
+  };
+
+  const ensureInitialState = () => {
+    const initialKey = activeKey || triggers[0]?.getAttribute('data-services-trigger');
+    triggers.forEach((trigger) => {
+      const key = trigger.getAttribute('data-services-trigger');
+      const isActive = key === initialKey;
+      trigger.classList.toggle('is-active', isActive);
+      trigger.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+      trigger.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+    panels.forEach((panel) => {
+      const key = panel.getAttribute('data-services-panel');
+      const isActive = key === initialKey;
+      panel.classList.toggle('is-active', isActive);
+      panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    });
+    activeKey = initialKey || null;
+  };
+
+  ensureInitialState();
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      const key = trigger.getAttribute('data-services-trigger');
+      setActive(key, { focusTrigger: false });
+    });
+
+    trigger.addEventListener('keydown', (event) => {
+      const currentIndex = Number(trigger.getAttribute('data-services-index'));
+      if (!Number.isFinite(currentIndex)) return;
+
+      const moveFocus = (nextIndex) => {
+        const next = triggers[nextIndex];
+        if (!next) return;
+        next.focus({ preventScroll: true });
+      };
+
+      switch (event.key) {
+        case 'ArrowDown':
+        case 'Down': {
+          event.preventDefault();
+          moveFocus((currentIndex + 1) % triggers.length);
+          break;
+        }
+        case 'ArrowUp':
+        case 'Up': {
+          event.preventDefault();
+          moveFocus((currentIndex - 1 + triggers.length) % triggers.length);
+          break;
+        }
+        case 'Home': {
+          event.preventDefault();
+          moveFocus(0);
+          break;
+        }
+        case 'End': {
+          event.preventDefault();
+          moveFocus(triggers.length - 1);
+          break;
+        }
+        case 'Enter':
+        case ' ': {
+          event.preventDefault();
+          const key = trigger.getAttribute('data-services-trigger');
+          setActive(key, { focusTrigger: false });
+          break;
+        }
+        default:
+          break;
+      }
+    });
+
+    trigger.addEventListener('focus', () => {
+      const key = trigger.getAttribute('data-services-trigger');
+      triggers.forEach((t) => t.setAttribute('tabindex', t === trigger ? '0' : '-1'));
+      if (!key) return;
+    });
+  });
+}
+
 function initSignalScan() {
   const section = document.querySelector('[data-signal-scan]');
   if (!section) return;
 
-  const viewport = section.querySelector('[data-signal-viewport]');
-  const track = section.querySelector('[data-signal-track]');
   const stories = Array.from(section.querySelectorAll('[data-signal-story]'));
   const prevButton = section.querySelector('[data-signal-prev]');
   const nextButton = section.querySelector('[data-signal-next]');
+  const stage = section.querySelector('[data-signal-stage]');
   const perspective = section.querySelector('[data-signal-perspective]');
   const avatar = section.querySelector('[data-signal-avatar]');
   const nameEl = section.querySelector('[data-signal-client-name]');
   const roleEl = section.querySelector('[data-signal-client-role]');
   const quoteEl = section.querySelector('[data-signal-client-quote]');
 
-  if (!viewport || !track || stories.length === 0 || !perspective || !nameEl || !roleEl || !quoteEl) return;
-
-  const readPx = (value) => {
-    const n = parseFloat(String(value || '').replace('px', ''));
-    return Number.isFinite(n) ? n : 0;
-  };
+  if (!stage || stories.length === 0 || !perspective || !nameEl || !roleEl || !quoteEl) return;
 
   const templateMap = new Map();
   section.querySelectorAll('template[data-signal-client-template]').forEach((tpl) => {
@@ -776,94 +974,13 @@ function initSignalScan() {
     return { name, role, quote };
   };
 
-  const AUTO_ADVANCE_ENABLED = false;
-
-  const getScanDurationMs = () => {
-    const raw = window.getComputedStyle(document.getElementById('case-studies')).getPropertyValue('--signal-scan-duration').trim();
-    if (!raw) return 1200;
-    if (raw.endsWith('ms')) return parseFloat(raw);
-    if (raw.endsWith('s')) return parseFloat(raw) * 1000;
-    return parseFloat(raw) || 1200;
-  };
-
-  const updateEdgeSpacers = () => {
-    if (!viewport || !track || !stories.length) return;
-
-    const csViewport = window.getComputedStyle(viewport);
-    const csTrack = window.getComputedStyle(track);
-    const padLeft = readPx(csViewport.paddingLeft) + readPx(csTrack.paddingLeft);
-    const padRight = readPx(csViewport.paddingRight) + readPx(csTrack.paddingRight);
-
-    const storyWidth = stories[0].offsetWidth || stories[0].getBoundingClientRect().width;
-    const edgeLeft = Math.max(0, (viewport.clientWidth / 2) - padLeft - (storyWidth / 2));
-    const edgeRight = Math.max(0, (viewport.clientWidth / 2) - padRight - (storyWidth / 2));
-
-    track.style.setProperty('--signal-edge-left', `${Math.round(edgeLeft)}px`);
-    track.style.setProperty('--signal-edge-right', `${Math.round(edgeRight)}px`);
-  };
-
   let activeIndex = 0;
-  let targetIndex = 0;
-  let scanToken = 0;
-  let autoTimer = 0;
-  let resumeTimer = 0;
-  let settleTimer = 0;
-  let isUserInteracting = false;
-  let isProgrammaticScroll = false;
-  let programmaticScrollTimer = 0;
-  let scanArmed = false;
-  let userHasScrolled = false;
+  let isSwitching = false;
+  let switchingTimer = 0;
 
   const clearTimers = () => {
-    if (autoTimer) window.clearTimeout(autoTimer);
-    if (resumeTimer) window.clearTimeout(resumeTimer);
-    if (settleTimer) window.clearTimeout(settleTimer);
-    if (programmaticScrollTimer) window.clearTimeout(programmaticScrollTimer);
-    autoTimer = 0;
-    resumeTimer = 0;
-    settleTimer = 0;
-    programmaticScrollTimer = 0;
-  };
-
-  const markProgrammaticScroll = () => {
-    isProgrammaticScroll = true;
-    if (programmaticScrollTimer) window.clearTimeout(programmaticScrollTimer);
-    programmaticScrollTimer = window.setTimeout(() => {
-      isProgrammaticScroll = false;
-    }, 900);
-  };
-
-  const pauseAuto = () => {
-    if (autoTimer) window.clearTimeout(autoTimer);
-    autoTimer = 0;
-    if (resumeTimer) window.clearTimeout(resumeTimer);
-    resumeTimer = 0;
-    if (!AUTO_ADVANCE_ENABLED) return;
-    resumeTimer = window.setTimeout(() => {
-      if (PREFERS_REDUCED_MOTION) return;
-      scheduleAuto();
-    }, 9000);
-  };
-
-  const scheduleAuto = () => {
-    if (!AUTO_ADVANCE_ENABLED) return;
-    if (PREFERS_REDUCED_MOTION) return;
-    if (autoTimer) window.clearTimeout(autoTimer);
-    autoTimer = window.setTimeout(() => {
-      const next = (activeIndex + 1) % stories.length;
-      startScan(next, { manual: false });
-    }, 6800);
-  };
-
-  const setTarget = (index) => {
-    stories.forEach((story, i) => story.classList.toggle('is-target', i === index));
-  };
-
-  const clearStates = () => {
-    stories.forEach((story) => {
-      story.classList.remove('is-active');
-      story.classList.remove('is-scanning');
-    });
+    if (switchingTimer) window.clearTimeout(switchingTimer);
+    switchingTimer = 0;
   };
 
   const updatePerspective = (index) => {
@@ -890,203 +1007,100 @@ function initSignalScan() {
   };
 
   const setActive = (index) => {
+    if (!stories[index]) return;
     activeIndex = index;
-    targetIndex = index;
-    stories.forEach((story, i) => story.classList.toggle('is-active', i === index));
-    setTarget(index);
-    updatePerspective(index);
-    scheduleAuto();
-  };
-
-  const scrollToIndex = (index, behavior = 'smooth') => {
-    const story = stories[index];
-    if (!story) return;
-
-    const desired = story.offsetLeft + (story.offsetWidth / 2) - (viewport.clientWidth / 2);
-    const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-    const left = Math.max(0, Math.min(desired, maxLeft));
-
-    try {
-      viewport.scrollTo({ left, behavior });
-    } catch (error) {
-      viewport.scrollLeft = left;
-    }
-  };
-
-  const getNearestIndex = () => {
-    const viewportRect = viewport.getBoundingClientRect();
-    const centerX = viewportRect.left + (viewportRect.width / 2);
-    let bestIndex = 0;
-    let bestDist = Number.POSITIVE_INFINITY;
-
     stories.forEach((story, i) => {
-      const rect = story.getBoundingClientRect();
-      const storyCenter = rect.left + (rect.width / 2);
-      const dist = Math.abs(storyCenter - centerX);
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestIndex = i;
-      }
+      const isActive = i === index;
+      story.classList.toggle('is-active', isActive);
+      story.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    });
+    updatePerspective(index);
+  };
+
+  const stabilizeStageHeight = () => {
+    if (!stage) return;
+    const measurer = document.createElement('div');
+    measurer.style.position = 'absolute';
+    measurer.style.left = '0';
+    measurer.style.top = '0';
+    measurer.style.width = '100%';
+    measurer.style.visibility = 'hidden';
+    measurer.style.pointerEvents = 'none';
+    measurer.style.opacity = '0';
+    stage.appendChild(measurer);
+
+    let maxHeight = 0;
+    stories.forEach((story) => {
+      const clone = story.cloneNode(true);
+      clone.classList.add('is-active');
+      clone.style.position = 'static';
+      clone.style.inset = 'auto';
+      clone.style.transform = 'none';
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+      clone.style.pointerEvents = 'none';
+      clone.style.transition = 'none';
+      measurer.appendChild(clone);
+      maxHeight = Math.max(maxHeight, clone.offsetHeight);
+      measurer.removeChild(clone);
     });
 
-    return bestIndex;
+    stage.removeChild(measurer);
+    if (Number.isFinite(maxHeight) && maxHeight > 0) {
+      stage.style.minHeight = `${maxHeight}px`;
+    }
   };
 
-  const startScan = (index, { manual = false } = {}) => {
-    if (!stories[index]) return;
-
-    const alreadyTarget = index === targetIndex;
-    const current = stories[index];
-    if (alreadyTarget && (current.classList.contains('is-scanning') || current.classList.contains('is-active'))) {
-      if (manual) pauseAuto();
-      return;
-    }
-
-    targetIndex = index;
-    scanToken += 1;
-    const token = scanToken;
-
-    if (manual) {
-      pauseAuto();
-    }
-
-    setTarget(index);
-    stories.forEach((story) => story.classList.remove('is-active'));
-    stories.forEach((story) => story.classList.remove('is-scanning'));
-
-    markProgrammaticScroll();
-    scrollToIndex(index, manual ? 'smooth' : 'smooth');
+  const startSwitch = (nextIndex) => {
+    if (!stories[nextIndex]) return;
+    if (nextIndex === activeIndex) return;
 
     if (PREFERS_REDUCED_MOTION) {
-      setActive(index);
+      setActive(nextIndex);
       return;
     }
 
-    const story = stories[index];
-    story.classList.add('is-scanning');
+    if (isSwitching) return;
+    isSwitching = true;
+    stage.classList.add('is-switching');
 
-    const scanDuration = getScanDurationMs();
-    const scanline = story.querySelector('.signal-scan__scanline');
-    let finalized = false;
-    const finalize = () => {
-      if (finalized) return;
-      finalized = true;
-      if (token !== scanToken) return;
-      story.classList.remove('is-scanning');
-      setActive(index);
-    };
-
-    if (scanline) {
-      scanline.addEventListener('animationend', finalize, { once: true });
-    }
-
-    window.setTimeout(finalize, scanDuration + 60);
+    clearTimers();
+    switchingTimer = window.setTimeout(() => {
+      setActive(nextIndex);
+      stage.classList.remove('is-switching');
+      isSwitching = false;
+    }, 180);
   };
 
   const goPrev = () => {
-    const next = (targetIndex - 1 + stories.length) % stories.length;
-    startScan(next, { manual: true });
+    const next = (activeIndex - 1 + stories.length) % stories.length;
+    startSwitch(next);
   };
 
   const goNext = () => {
-    const next = (targetIndex + 1) % stories.length;
-    startScan(next, { manual: true });
+    const next = (activeIndex + 1) % stories.length;
+    startSwitch(next);
   };
 
   if (prevButton) prevButton.addEventListener('click', goPrev);
   if (nextButton) nextButton.addEventListener('click', goNext);
 
-  let dragging = false;
-  let dragStartX = 0;
-  let dragStartScrollLeft = 0;
-
-  const onPointerDown = (event) => {
-    if (event.button != null && event.button !== 0) return;
-    dragging = true;
-    isUserInteracting = true;
-    dragStartX = event.clientX;
-    dragStartScrollLeft = viewport.scrollLeft;
-    pauseAuto();
-    try {
-      viewport.setPointerCapture(event.pointerId);
-    } catch (error) {
+  stage.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      goPrev();
     }
-  };
-
-  const onPointerMove = (event) => {
-    if (!dragging) return;
-    const dx = event.clientX - dragStartX;
-    viewport.scrollLeft = dragStartScrollLeft - dx;
-  };
-
-  const onPointerEnd = (event) => {
-    if (!dragging) return;
-    dragging = false;
-    try {
-      viewport.releasePointerCapture(event.pointerId);
-    } catch (error) {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      goNext();
     }
-    const nearest = getNearestIndex();
-    startScan(nearest, { manual: true });
-    window.setTimeout(() => {
-      isUserInteracting = false;
-    }, 260);
-  };
-
-  viewport.addEventListener('pointerdown', onPointerDown);
-  viewport.addEventListener('pointermove', onPointerMove);
-  viewport.addEventListener('pointerup', onPointerEnd);
-  viewport.addEventListener('pointercancel', onPointerEnd);
-
-  viewport.addEventListener('scroll', () => {
-    if (PREFERS_REDUCED_MOTION) return;
-    if (isUserInteracting) return;
-    if (isProgrammaticScroll) return;
-    pauseAuto();
-    if (settleTimer) window.clearTimeout(settleTimer);
-    settleTimer = window.setTimeout(() => {
-      const nearest = getNearestIndex();
-      startScan(nearest, { manual: true });
-    }, 180);
-
-    const nearest = getNearestIndex();
-    setTarget(nearest);
-  }, { passive: true });
+  });
 
   window.addEventListener('beforeunload', clearTimers);
+  stabilizeStageHeight();
+  window.addEventListener('resize', utils.debounce(stabilizeStageHeight, 140), { passive: true });
 
-  updateEdgeSpacers();
-  window.addEventListener('resize', utils.debounce(updateEdgeSpacers, 140), { passive: true });
-
-  const onFirstUserScroll = () => {
-    userHasScrolled = true;
-    window.removeEventListener('scroll', onFirstUserScroll, { passive: true });
-  };
-  window.addEventListener('scroll', onFirstUserScroll, { passive: true });
-
-  const armScanWhenVisible = () => {
-    if (scanArmed) return;
-    if (!userHasScrolled) return;
-    scanArmed = true;
-    startScan(activeIndex, { manual: false });
-  };
-
-  const sectionObserver = new IntersectionObserver((entries, obs) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      armScanWhenVisible();
-      if (scanArmed) obs.unobserve(entry.target);
-    });
-  }, { threshold: 0.3, rootMargin: '0px 0px -18% 0px' });
-
-  sectionObserver.observe(section);
-
-  updatePerspective(0);
-  setTarget(0);
-  if (PREFERS_REDUCED_MOTION) {
-    setActive(0);
-    return;
-  }
+  setActive(0);
 }
 
 function initInteractiveTilesMotion() {
@@ -1889,6 +1903,8 @@ function init() {
   initHeroParallax();
   initStoryBlocks({ useScrollTrigger: hasGSAP && hasScrollTrigger });
   initScrollReveal({ useScrollTrigger: hasGSAP && hasScrollTrigger });
+  initPositioningReveal();
+  initServicesRail();
   initSignalScan();
   initInteractiveTilesMotion();
   initMagneticCta();
