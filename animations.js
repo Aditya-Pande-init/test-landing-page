@@ -4,7 +4,7 @@ const initAnimations = () => {
   document.documentElement.classList.add('js-enabled');
 
   if (prefersReducedMotion) {
-    document.querySelectorAll('[data-stat-target]').forEach((el) => {
+    document.querySelectorAll('#stats [data-stat-target]').forEach((el) => {
       el.textContent = el.getAttribute('data-stat-target');
     });
     return;
@@ -50,52 +50,86 @@ const onIntersect = (entries, observer) => {
 };
 
 const initStatCounters = () => {
-  const stats = document.querySelectorAll('[data-stat-target]');
+  const statsSection = document.getElementById('stats');
+  if (!statsSection) return;
+  const stats = Array.from(statsSection.querySelectorAll('[data-stat-target]'));
   if (!stats.length) return;
 
   const observer = new IntersectionObserver((entries, obs) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
-      const el = entry.target;
-      animateCountUp(el, parseFloat(el.getAttribute('data-stat-target')));
-      obs.unobserve(el);
+      stats.forEach((el, index) => {
+        window.setTimeout(() => {
+          animateCalibration(el, el.getAttribute('data-stat-target') || '');
+        }, index * 90);
+      });
+      obs.unobserve(entry.target);
     });
-  }, { threshold: 0.4 });
+  }, { threshold: 0.35, rootMargin: '0px 0px -12% 0px' });
 
-  stats.forEach((stat) => observer.observe(stat));
+  observer.observe(statsSection);
 };
 
-const animateCountUp = (element, targetValue) => {
-  const duration = 1200;
+const animateCalibration = (element, targetRaw) => {
+  const target = String(targetRaw).trim();
+  if (!target) return;
+  if (element.dataset.statCalibrated === 'true') return;
+  element.dataset.statCalibrated = 'true';
+
+  const duration = 920;
   const start = performance.now();
-  const startValue = 0;
-  const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+  const len = target.length;
+  const digits = '0123456789';
+  const rand = (min, max) => Math.random() * (max - min) + min;
 
-  const step = (currentTime) => {
-    const elapsed = Math.min((currentTime - start) / duration, 1);
-    const eased = easeOutExpo(elapsed);
-    const value = startValue + (targetValue - startValue) * eased;
-    element.textContent = formatValue(value, targetValue);
+  element.classList.add('is-calibrating');
 
-    if (elapsed < 1) {
-      requestAnimationFrame(step);
+  const synth = (lockedCount) => {
+    let out = '';
+    for (let i = 0; i < len; i += 1) {
+      const ch = target[i];
+      if (i < lockedCount) {
+        out += ch;
+        continue;
+      }
+      if (ch === '.') {
+        out += Math.random() > 0.7 ? '.' : digits[Math.floor(Math.random() * digits.length)];
+        continue;
+      }
+      if (ch === '%') {
+        out += '%';
+        continue;
+      }
+      out += digits[Math.floor(Math.random() * digits.length)];
     }
+    return out;
+  };
+
+  const step = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const lock = Math.max(0, Math.min(len, Math.floor(ease * (len + 2))));
+
+    element.textContent = synth(lock);
+
+    const jitter = (1 - ease);
+    const tx = Math.round(rand(-2.2, 2.2) * jitter);
+    const ty = Math.round(rand(-1.1, 1.1) * jitter);
+    element.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+    element.style.opacity = String(0.86 + rand(-0.12, 0.08) * jitter);
+
+    if (t < 1) {
+      requestAnimationFrame(step);
+      return;
+    }
+
+    element.textContent = target;
+    element.style.transform = '';
+    element.style.opacity = '';
+    element.classList.remove('is-calibrating');
   };
 
   requestAnimationFrame(step);
-};
-
-const formatValue = (value, target) => {
-  if (Number.isInteger(target)) {
-    return Math.round(value).toString();
-  }
-  return value.toFixed(getDecimalPlaces(target));
-};
-
-const getDecimalPlaces = (value) => {
-  const str = value.toString();
-  if (!str.includes('.')) return 0;
-  return str.split('.')[1].length;
 };
 
 if (document.readyState === 'loading') {

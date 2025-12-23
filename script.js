@@ -731,6 +731,364 @@ function initScrollReveal({ useScrollTrigger = false } = {}) {
   sections.forEach((section) => observer.observe(section));
 }
 
+function initSignalScan() {
+  const section = document.querySelector('[data-signal-scan]');
+  if (!section) return;
+
+  const viewport = section.querySelector('[data-signal-viewport]');
+  const track = section.querySelector('[data-signal-track]');
+  const stories = Array.from(section.querySelectorAll('[data-signal-story]'));
+  const prevButton = section.querySelector('[data-signal-prev]');
+  const nextButton = section.querySelector('[data-signal-next]');
+  const perspective = section.querySelector('[data-signal-perspective]');
+  const avatar = section.querySelector('[data-signal-avatar]');
+  const nameEl = section.querySelector('[data-signal-client-name]');
+  const roleEl = section.querySelector('[data-signal-client-role]');
+  const quoteEl = section.querySelector('[data-signal-client-quote]');
+
+  if (!viewport || !track || stories.length === 0 || !perspective || !nameEl || !roleEl || !quoteEl) return;
+
+  const readPx = (value) => {
+    const n = parseFloat(String(value || '').replace('px', ''));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const templateMap = new Map();
+  section.querySelectorAll('template[data-signal-client-template]').forEach((tpl) => {
+    const key = tpl.getAttribute('data-signal-client-template');
+    if (!key) return;
+    templateMap.set(key, tpl);
+  });
+
+  const avatarSrcMap = {
+    '0': '1.jpg',
+    '1': '2.jpg',
+    '2': '3.jpg',
+  };
+
+  const getClientData = (key) => {
+    const tpl = templateMap.get(String(key));
+    if (!tpl) return null;
+    const root = tpl.content;
+    const name = root.querySelector('[data-signal-name]')?.textContent?.trim() || '';
+    const role = root.querySelector('[data-signal-role]')?.textContent?.trim() || '';
+    const quote = root.querySelector('[data-signal-quote]')?.textContent?.trim() || '';
+    return { name, role, quote };
+  };
+
+  const AUTO_ADVANCE_ENABLED = false;
+
+  const getScanDurationMs = () => {
+    const raw = window.getComputedStyle(document.getElementById('case-studies')).getPropertyValue('--signal-scan-duration').trim();
+    if (!raw) return 1200;
+    if (raw.endsWith('ms')) return parseFloat(raw);
+    if (raw.endsWith('s')) return parseFloat(raw) * 1000;
+    return parseFloat(raw) || 1200;
+  };
+
+  const updateEdgeSpacers = () => {
+    if (!viewport || !track || !stories.length) return;
+
+    const csViewport = window.getComputedStyle(viewport);
+    const csTrack = window.getComputedStyle(track);
+    const padLeft = readPx(csViewport.paddingLeft) + readPx(csTrack.paddingLeft);
+    const padRight = readPx(csViewport.paddingRight) + readPx(csTrack.paddingRight);
+
+    const storyWidth = stories[0].offsetWidth || stories[0].getBoundingClientRect().width;
+    const edgeLeft = Math.max(0, (viewport.clientWidth / 2) - padLeft - (storyWidth / 2));
+    const edgeRight = Math.max(0, (viewport.clientWidth / 2) - padRight - (storyWidth / 2));
+
+    track.style.setProperty('--signal-edge-left', `${Math.round(edgeLeft)}px`);
+    track.style.setProperty('--signal-edge-right', `${Math.round(edgeRight)}px`);
+  };
+
+  let activeIndex = 0;
+  let targetIndex = 0;
+  let scanToken = 0;
+  let autoTimer = 0;
+  let resumeTimer = 0;
+  let settleTimer = 0;
+  let isUserInteracting = false;
+  let isProgrammaticScroll = false;
+  let programmaticScrollTimer = 0;
+  let scanArmed = false;
+  let userHasScrolled = false;
+
+  const clearTimers = () => {
+    if (autoTimer) window.clearTimeout(autoTimer);
+    if (resumeTimer) window.clearTimeout(resumeTimer);
+    if (settleTimer) window.clearTimeout(settleTimer);
+    if (programmaticScrollTimer) window.clearTimeout(programmaticScrollTimer);
+    autoTimer = 0;
+    resumeTimer = 0;
+    settleTimer = 0;
+    programmaticScrollTimer = 0;
+  };
+
+  const markProgrammaticScroll = () => {
+    isProgrammaticScroll = true;
+    if (programmaticScrollTimer) window.clearTimeout(programmaticScrollTimer);
+    programmaticScrollTimer = window.setTimeout(() => {
+      isProgrammaticScroll = false;
+    }, 900);
+  };
+
+  const pauseAuto = () => {
+    if (autoTimer) window.clearTimeout(autoTimer);
+    autoTimer = 0;
+    if (resumeTimer) window.clearTimeout(resumeTimer);
+    resumeTimer = 0;
+    if (!AUTO_ADVANCE_ENABLED) return;
+    resumeTimer = window.setTimeout(() => {
+      if (PREFERS_REDUCED_MOTION) return;
+      scheduleAuto();
+    }, 9000);
+  };
+
+  const scheduleAuto = () => {
+    if (!AUTO_ADVANCE_ENABLED) return;
+    if (PREFERS_REDUCED_MOTION) return;
+    if (autoTimer) window.clearTimeout(autoTimer);
+    autoTimer = window.setTimeout(() => {
+      const next = (activeIndex + 1) % stories.length;
+      startScan(next, { manual: false });
+    }, 6800);
+  };
+
+  const setTarget = (index) => {
+    stories.forEach((story, i) => story.classList.toggle('is-target', i === index));
+  };
+
+  const clearStates = () => {
+    stories.forEach((story) => {
+      story.classList.remove('is-active');
+      story.classList.remove('is-scanning');
+    });
+  };
+
+  const updatePerspective = (index) => {
+    const story = stories[index];
+    if (!story) return;
+    const clientKey = story.getAttribute('data-client');
+    const data = getClientData(clientKey);
+    if (!data) return;
+
+    perspective.classList.add('is-updating');
+    nameEl.textContent = data.name;
+    roleEl.textContent = data.role;
+    quoteEl.textContent = data.quote;
+
+    if (avatar && avatar.getAttribute('data-signal-avatar') != null) {
+      const src = avatarSrcMap[String(clientKey)];
+      if (src) avatar.src = src;
+      avatar.alt = data.name || '';
+    }
+
+    window.requestAnimationFrame(() => {
+      perspective.classList.remove('is-updating');
+    });
+  };
+
+  const setActive = (index) => {
+    activeIndex = index;
+    targetIndex = index;
+    stories.forEach((story, i) => story.classList.toggle('is-active', i === index));
+    setTarget(index);
+    updatePerspective(index);
+    scheduleAuto();
+  };
+
+  const scrollToIndex = (index, behavior = 'smooth') => {
+    const story = stories[index];
+    if (!story) return;
+
+    const desired = story.offsetLeft + (story.offsetWidth / 2) - (viewport.clientWidth / 2);
+    const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const left = Math.max(0, Math.min(desired, maxLeft));
+
+    try {
+      viewport.scrollTo({ left, behavior });
+    } catch (error) {
+      viewport.scrollLeft = left;
+    }
+  };
+
+  const getNearestIndex = () => {
+    const viewportRect = viewport.getBoundingClientRect();
+    const centerX = viewportRect.left + (viewportRect.width / 2);
+    let bestIndex = 0;
+    let bestDist = Number.POSITIVE_INFINITY;
+
+    stories.forEach((story, i) => {
+      const rect = story.getBoundingClientRect();
+      const storyCenter = rect.left + (rect.width / 2);
+      const dist = Math.abs(storyCenter - centerX);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIndex = i;
+      }
+    });
+
+    return bestIndex;
+  };
+
+  const startScan = (index, { manual = false } = {}) => {
+    if (!stories[index]) return;
+
+    const alreadyTarget = index === targetIndex;
+    const current = stories[index];
+    if (alreadyTarget && (current.classList.contains('is-scanning') || current.classList.contains('is-active'))) {
+      if (manual) pauseAuto();
+      return;
+    }
+
+    targetIndex = index;
+    scanToken += 1;
+    const token = scanToken;
+
+    if (manual) {
+      pauseAuto();
+    }
+
+    setTarget(index);
+    stories.forEach((story) => story.classList.remove('is-active'));
+    stories.forEach((story) => story.classList.remove('is-scanning'));
+
+    markProgrammaticScroll();
+    scrollToIndex(index, manual ? 'smooth' : 'smooth');
+
+    if (PREFERS_REDUCED_MOTION) {
+      setActive(index);
+      return;
+    }
+
+    const story = stories[index];
+    story.classList.add('is-scanning');
+
+    const scanDuration = getScanDurationMs();
+    const scanline = story.querySelector('.signal-scan__scanline');
+    let finalized = false;
+    const finalize = () => {
+      if (finalized) return;
+      finalized = true;
+      if (token !== scanToken) return;
+      story.classList.remove('is-scanning');
+      setActive(index);
+    };
+
+    if (scanline) {
+      scanline.addEventListener('animationend', finalize, { once: true });
+    }
+
+    window.setTimeout(finalize, scanDuration + 60);
+  };
+
+  const goPrev = () => {
+    const next = (targetIndex - 1 + stories.length) % stories.length;
+    startScan(next, { manual: true });
+  };
+
+  const goNext = () => {
+    const next = (targetIndex + 1) % stories.length;
+    startScan(next, { manual: true });
+  };
+
+  if (prevButton) prevButton.addEventListener('click', goPrev);
+  if (nextButton) nextButton.addEventListener('click', goNext);
+
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+
+  const onPointerDown = (event) => {
+    if (event.button != null && event.button !== 0) return;
+    dragging = true;
+    isUserInteracting = true;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = viewport.scrollLeft;
+    pauseAuto();
+    try {
+      viewport.setPointerCapture(event.pointerId);
+    } catch (error) {
+    }
+  };
+
+  const onPointerMove = (event) => {
+    if (!dragging) return;
+    const dx = event.clientX - dragStartX;
+    viewport.scrollLeft = dragStartScrollLeft - dx;
+  };
+
+  const onPointerEnd = (event) => {
+    if (!dragging) return;
+    dragging = false;
+    try {
+      viewport.releasePointerCapture(event.pointerId);
+    } catch (error) {
+    }
+    const nearest = getNearestIndex();
+    startScan(nearest, { manual: true });
+    window.setTimeout(() => {
+      isUserInteracting = false;
+    }, 260);
+  };
+
+  viewport.addEventListener('pointerdown', onPointerDown);
+  viewport.addEventListener('pointermove', onPointerMove);
+  viewport.addEventListener('pointerup', onPointerEnd);
+  viewport.addEventListener('pointercancel', onPointerEnd);
+
+  viewport.addEventListener('scroll', () => {
+    if (PREFERS_REDUCED_MOTION) return;
+    if (isUserInteracting) return;
+    if (isProgrammaticScroll) return;
+    pauseAuto();
+    if (settleTimer) window.clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(() => {
+      const nearest = getNearestIndex();
+      startScan(nearest, { manual: true });
+    }, 180);
+
+    const nearest = getNearestIndex();
+    setTarget(nearest);
+  }, { passive: true });
+
+  window.addEventListener('beforeunload', clearTimers);
+
+  updateEdgeSpacers();
+  window.addEventListener('resize', utils.debounce(updateEdgeSpacers, 140), { passive: true });
+
+  const onFirstUserScroll = () => {
+    userHasScrolled = true;
+    window.removeEventListener('scroll', onFirstUserScroll, { passive: true });
+  };
+  window.addEventListener('scroll', onFirstUserScroll, { passive: true });
+
+  const armScanWhenVisible = () => {
+    if (scanArmed) return;
+    if (!userHasScrolled) return;
+    scanArmed = true;
+    startScan(activeIndex, { manual: false });
+  };
+
+  const sectionObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      armScanWhenVisible();
+      if (scanArmed) obs.unobserve(entry.target);
+    });
+  }, { threshold: 0.3, rootMargin: '0px 0px -18% 0px' });
+
+  sectionObserver.observe(section);
+
+  updatePerspective(0);
+  setTarget(0);
+  if (PREFERS_REDUCED_MOTION) {
+    setActive(0);
+    return;
+  }
+}
+
 function initInteractiveTilesMotion() {
   const tiles = Array.from(document.querySelectorAll('.interactive-tile, .feature-section, .cinematic-video-block'));
   if (!tiles.length) return;
@@ -1531,6 +1889,7 @@ function init() {
   initHeroParallax();
   initStoryBlocks({ useScrollTrigger: hasGSAP && hasScrollTrigger });
   initScrollReveal({ useScrollTrigger: hasGSAP && hasScrollTrigger });
+  initSignalScan();
   initInteractiveTilesMotion();
   initMagneticCta();
   initCursorAura();
