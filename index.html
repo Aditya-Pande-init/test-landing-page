@@ -32,17 +32,6 @@
     </div>
     <div class="page-shell">
       <header class="site-header">
-        <video
-          class="site-header__bg-video"
-          id="heroBackgroundVideo"
-          data-reverse-src="scroll-reverse.mp4"
-          muted
-          playsinline
-          preload="metadata"
-          poster="media/hero-strata-poster.jpg"
-        >
-          <source src="scroll.mp4" type="video/mp4" />
-        </video>
         <div class="site-header__bg-overlay" aria-hidden="true"></div>
         <nav class="site-header__floating-nav" aria-label="Primary">
           <div class="site-header__floating-shell">
@@ -66,6 +55,18 @@
       </header>
 
       <main class="site-main">
+        <section class="section section--farview-sequence" id="far-view" aria-label="The Far View">
+          <div class="farview-sequence" data-farview-sequence>
+            <div class="farview-sequence__stage" data-farview-stage>
+              <canvas class="farview-sequence__canvas" data-farview-canvas aria-hidden="true"></canvas>
+              <div class="farview-sequence__overlay">
+                <div class="farview-sequence__kicker" data-farview-kicker>And that&rsquo;s</div>
+                <div class="farview-sequence__line" data-farview-line aria-live="polite"></div>
+                <div class="farview-sequence__final" data-farview-final style="--farview-reveal: 0">THE FAR VIEW</div>
+              </div>
+            </div>
+          </div>
+        </section>
         <section class="section section--hero reveal reveal-on-scroll reveal-section animate-section" id="hero" data-reveal="section">
           <div class="hero">
             <canvas id="veinCanvas" class="parallax-layer" data-speed="0.6" aria-hidden="true"></canvas>
@@ -577,7 +578,6 @@
       </footer>
     </div>
   <script src="animations.js" defer></script>
-  <script src="js/hero-video.js" defer></script>
   <script src="js/ambient-effects.js" defer></script>
   <script src="js/veins.js" defer></script>
   <script src="script.js" defer></script>

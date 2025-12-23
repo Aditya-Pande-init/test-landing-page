@@ -762,6 +762,436 @@ function initPositioningReveal() {
   observer.observe(section);
 }
 
+function initFarViewSequence() {
+  const root = document.querySelector('[data-farview-sequence]');
+  if (!root) return;
+
+  const stage = root.querySelector('[data-farview-stage]');
+  const canvas = root.querySelector('[data-farview-canvas]');
+  const lineEl = root.querySelector('[data-farview-line]');
+  const kickerEl = root.querySelector('[data-farview-kicker]');
+  const finalEl = root.querySelector('[data-farview-final]');
+
+  if (!stage || !canvas || !lineEl || !kickerEl || !finalEl) return;
+
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+  if (!ctx) return;
+
+  const MAX_DPR = 1.6;
+
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+  const norm = (p, a, b) => {
+    if (a === b) return 0;
+    return clamp((p - a) / (b - a), 0, 1);
+  };
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  const statements = [
+    { start: 0.03, end: 0.13, text: 'Technology should make life better, not more complicated.' },
+    { start: 0.13, end: 0.23, text: 'Work should feel lighter, not louder.' },
+    { start: 0.23, end: 0.33, text: 'Systems should support people, not demand attention.' },
+    { start: 0.38, end: 0.45, text: 'But most software does the opposite.' },
+    { start: 0.45, end: 0.515, text: 'It fragments attention.' },
+    { start: 0.515, end: 0.58, text: 'It adds noise.' },
+    { start: 0.62, end: 0.76, text: 'We make software that gets software out of the way.' },
+  ];
+
+  const state = {
+    width: 0,
+    height: 0,
+    dpr: 1,
+    rafId: null,
+    progress: 0,
+    targetProgress: 0,
+    lastLineText: null,
+    planes: [],
+    field: [],
+    resolve: {
+      sources: [],
+      targets: [],
+      particles: [],
+      offscreen: null,
+      offctx: null,
+    },
+  };
+
+  const seed = (i) => {
+    const x = Math.sin(i * 999.123) * 10000;
+    return x - Math.floor(x);
+  };
+
+  const buildField = () => {
+    const count = Math.max(140, Math.min(260, Math.floor((state.width * state.height) / 9000)));
+    state.field = Array.from({ length: count }, (_, i) => {
+      const z = 0.12 + seed(i + 1) * 0.88;
+      return {
+        x: seed(i + 20) * state.width,
+        y: seed(i + 70) * state.height,
+        z,
+        r: 0.6 + seed(i + 130) * 1.8,
+        phase: seed(i + 210) * Math.PI * 2,
+      };
+    });
+  };
+
+  const buildPlanes = () => {
+    state.planes = [
+      { x: 0.18, y: 0.22, w: 0.58, h: 0.28, z: 0.18, rot: -0.06 },
+      { x: 0.62, y: 0.58, w: 0.54, h: 0.24, z: 0.34, rot: 0.04 },
+      { x: 0.28, y: 0.68, w: 0.48, h: 0.22, z: 0.52, rot: -0.03 },
+      { x: 0.72, y: 0.28, w: 0.46, h: 0.20, z: 0.64, rot: 0.02 },
+      { x: 0.48, y: 0.42, w: 0.66, h: 0.32, z: 0.26, rot: 0.01 },
+    ].map((p) => ({
+      ...p,
+      px: p.x * state.width,
+      py: p.y * state.height,
+      pw: p.w * state.width,
+      ph: p.h * state.height,
+    }));
+  };
+
+  const buildResolveTargets = () => {
+    const offscreen = state.resolve.offscreen || document.createElement('canvas');
+    const offctx = state.resolve.offctx || offscreen.getContext('2d');
+    if (!offctx) return;
+
+    state.resolve.offscreen = offscreen;
+    state.resolve.offctx = offctx;
+
+    const w = Math.max(1, Math.floor(state.width * 0.9));
+    const h = Math.max(1, Math.floor(state.height * 0.52));
+
+    offscreen.width = w;
+    offscreen.height = h;
+
+    offctx.clearRect(0, 0, w, h);
+    offctx.fillStyle = '#ffffff';
+
+    const fontSize = Math.max(40, Math.min(140, Math.floor(state.width * 0.11)));
+    offctx.font = `600 ${fontSize}px Space Grotesk, Arial, sans-serif`;
+    offctx.textAlign = 'center';
+    offctx.textBaseline = 'middle';
+    offctx.fillText('THE FAR VIEW', w / 2, h / 2);
+
+    const image = offctx.getImageData(0, 0, w, h);
+    const data = image.data;
+
+    const step = state.width < 700 ? 10 : 8;
+    const targets = [];
+    for (let y = 0; y < h; y += step) {
+      for (let x = 0; x < w; x += step) {
+        const idx = (y * w + x) * 4 + 3;
+        const a = data[idx];
+        if (a > 50) {
+          targets.push({
+            x: (state.width - w) * 0.5 + x,
+            y: state.height * 0.55 - h * 0.5 + y,
+          });
+        }
+      }
+    }
+
+    const cap = state.width < 700 ? 520 : 760;
+    const trimmed = targets.length > cap ? targets.filter((_, i) => i % Math.ceil(targets.length / cap) === 0) : targets;
+
+    state.resolve.targets = trimmed;
+    state.resolve.particles = trimmed.map((t, i) => {
+      const angle = seed(i + 410) * Math.PI * 2;
+      const radius = lerp(Math.min(state.width, state.height) * 0.42, Math.min(state.width, state.height) * 0.9, seed(i + 510));
+      return {
+        x0: state.width / 2 + Math.cos(angle) * radius,
+        y0: state.height / 2 + Math.sin(angle) * radius,
+        x1: t.x,
+        y1: t.y,
+        z: 0.45 + seed(i + 610) * 0.55,
+      };
+    });
+  };
+
+  const resize = () => {
+    const rect = stage.getBoundingClientRect();
+    state.width = Math.max(1, Math.floor(rect.width));
+    state.height = Math.max(1, Math.floor(rect.height));
+    state.dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    canvas.width = Math.max(1, Math.floor(state.width * state.dpr));
+    canvas.height = Math.max(1, Math.floor(state.height * state.dpr));
+    canvas.style.width = `${state.width}px`;
+    canvas.style.height = `${state.height}px`;
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    buildPlanes();
+    buildField();
+    buildResolveTargets();
+  };
+
+  const getScrollProgress = () => {
+    const rect = root.getBoundingClientRect();
+    const total = Math.max(1, root.offsetHeight - (window.innerHeight || state.height || 1));
+    const raw = (-rect.top) / total;
+    return clamp(raw, 0, 1);
+  };
+
+  const setOverlay = (p) => {
+    let active = null;
+    const fade = 0.028;
+    for (let i = 0; i < statements.length; i += 1) {
+      const s = statements[i];
+      if (p < s.start || p > s.end) continue;
+      const ain = smoothstep(norm(p, s.start, s.start + fade));
+      const aout = 1 - smoothstep(norm(p, s.end - fade, s.end));
+      active = { text: s.text, alpha: clamp(ain * aout, 0, 1) };
+      break;
+    }
+
+    const lineAlpha = active ? active.alpha : 0;
+
+    const nextText = active ? active.text : '';
+    if (state.lastLineText !== nextText) {
+      lineEl.textContent = nextText;
+      state.lastLineText = nextText;
+    }
+
+    lineEl.style.opacity = String(lineAlpha);
+    const lift = (1 - lineAlpha) * 10;
+    lineEl.style.transform = `translate(-50%, calc(-50% + ${lift.toFixed(2)}px))`;
+
+    const kickerAlpha = smoothstep(norm(p, 0.76, 0.82)) * (1 - smoothstep(norm(p, 0.992, 1.0)));
+    kickerEl.style.opacity = String(clamp(kickerAlpha, 0, 1));
+
+    const finalIn = smoothstep(norm(p, 0.84, 0.88));
+    const finalReveal = smoothstep(norm(p, 0.84, 1.0));
+    finalEl.style.opacity = String(clamp(finalIn, 0, 1));
+    finalEl.style.setProperty('--farview-reveal', String(clamp(finalReveal, 0, 1)));
+  };
+
+  const draw = (p) => {
+    ctx.clearRect(0, 0, state.width, state.height);
+    ctx.fillStyle = '#0a0f1a';
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    const act1 = norm(p, 0.0, 0.36);
+    const act2 = norm(p, 0.36, 0.58);
+    const act3 = norm(p, 0.58, 0.76);
+    const act4 = norm(p, 0.76, 1.0);
+
+    const densityBoost = smoothstep(act2);
+    const simplify = smoothstep(act3);
+
+    const keepField = 1 - smoothstep(norm(p, 0.62, 0.82));
+    const tensionField = smoothstep(act2) * (1 - smoothstep(norm(p, 0.58, 0.62)));
+    const fieldAlpha = clamp(0.22 * act1 + 0.26 * tensionField + 0.14 * keepField, 0, 0.34);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.globalAlpha = fieldAlpha;
+
+    const wobbleBase = lerp(2.6, 7.2, densityBoost);
+    const collapseX = lerp(0, state.width * 0.5, simplify);
+    const collapseY = lerp(0, state.height * 0.5, simplify);
+
+    for (let i = 0; i < state.field.length; i += 1) {
+      const dot = state.field[i];
+      const depth = dot.z;
+      const par = (1 - depth);
+      const wobble = Math.sin(p * Math.PI * wobbleBase + dot.phase) * lerp(2.0, 6.2, densityBoost);
+      const drift = act1 * 28 + densityBoost * 42;
+      const xBase = dot.x + par * (wobble + drift * (p - 0.12));
+      const yBase = dot.y + par * (wobble * 0.45 - drift * (p - 0.12) * 0.22);
+      const x = lerp(xBase, collapseX, simplify * par);
+      const y = lerp(yBase, collapseY, simplify * par);
+      const r = dot.r * lerp(1.25, 0.6, simplify) * lerp(1.0, 1.25, densityBoost) * (0.55 + depth * 0.85);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    const chaosRamp = smoothstep(norm(p, 0.38, 0.58));
+    const chaosBoost1 = smoothstep(norm(p, 0.45, 0.515));
+    const chaosBoost2 = smoothstep(norm(p, 0.515, 0.58));
+    const chaosCollapse = 1 - smoothstep(norm(p, 0.58, 0.62));
+    const chaos = clamp(chaosRamp * (0.65 + 0.18 * chaosBoost1 + 0.32 * chaosBoost2) * chaosCollapse, 0, 1);
+
+    const planeHold = 1 - smoothstep(norm(p, 0.62, 0.82));
+    const planeAlpha = clamp(0.55 * act1 + 0.62 * densityBoost + 0.18 * planeHold + chaos * 0.22, 0, 0.82) * (1 - smoothstep(norm(p, 0.70, 0.84)));
+
+    ctx.save();
+    ctx.globalAlpha = planeAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < state.planes.length; i += 1) {
+      const pl = state.planes[i];
+      const depth = pl.z;
+      const par = 1 - depth;
+      const motion = act1 * 38 + densityBoost * 64 + chaos * (96 + 84 * (1 - depth));
+      const t = p * Math.PI * (2.2 + depth * 2.1);
+      const dx = Math.sin(t) * motion * 0.12 * par;
+      const dy = Math.cos(t * 0.9) * motion * 0.08 * par;
+      const toCenter = simplify * par;
+      const cx = lerp(pl.px + dx, state.width * 0.5, toCenter);
+      const cy = lerp(pl.py + dy, state.height * 0.5, toCenter);
+      const scale = lerp(1, 0.32 + depth * 0.42, simplify);
+      const rot = pl.rot + Math.sin(t * 0.5) * 0.012 * lerp(1, 1.8, densityBoost + chaos * 0.65) * (1 - simplify);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.scale(scale, scale);
+
+      const w = pl.pw;
+      const h = pl.ph;
+      const fragMix = chaos * (1 - simplify);
+      const splitsBase = 1 + Math.floor(fragMix * 4);
+      const splitsExtra = seed(i + 910) > 0.56 ? Math.floor(fragMix * 2) : Math.floor(fragMix);
+      const splits = clamp(splitsBase + splitsExtra, 1, 6);
+
+      const baseLw1 = lerp(1.25, 0.9, depth);
+      const baseLw2 = lerp(1.8, 1.2, depth);
+      const jitterAmp = fragMix * (10 + 8 * (1 - depth));
+      const rotAmp = fragMix * 0.018;
+
+      for (let gy = 0; gy < splits; gy += 1) {
+        for (let gx = 0; gx < splits; gx += 1) {
+          const cell = (i + 1) * 1000 + gx * 31 + gy * 97;
+          const rx = seed(cell + 11) * 2 - 1;
+          const ry = seed(cell + 29) * 2 - 1;
+          const rr = seed(cell + 53) * 2 - 1;
+
+          const jx = rx * jitterAmp;
+          const jy = ry * jitterAmp;
+          const rj = rr * rotAmp;
+
+          const cw = w / splits;
+          const ch = h / splits;
+          const x0 = -w / 2 + gx * cw + jx;
+          const y0 = -h / 2 + gy * ch + jy;
+
+          const inset = Math.min(6, Math.max(2, Math.min(cw, ch) * 0.08));
+
+          ctx.save();
+          ctx.translate(x0 + cw / 2, y0 + ch / 2);
+          ctx.rotate(rj);
+          ctx.translate(-(x0 + cw / 2), -(y0 + ch / 2));
+
+          ctx.lineWidth = baseLw1;
+          const whiteBase = 0.14 + 0.08 * (1 - depth);
+          const whiteBoost = 0.04 + 0.06 * (1 - depth);
+          const whiteAlpha = clamp(whiteBase + whiteBoost * fragMix, 0, 0.42);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
+          ctx.strokeRect(x0, y0, cw, ch);
+
+          if (cw > inset * 2.6 && ch > inset * 2.6) {
+            ctx.lineWidth = baseLw2;
+            const goldBase = 0.12 + 0.14 * (1 - depth);
+            const goldBoost = 0.06 + 0.10 * (1 - depth);
+            const goldAlpha = clamp(goldBase + goldBoost * fragMix, 0, 0.55);
+            ctx.strokeStyle = `rgba(201, 168, 107, ${goldAlpha})`;
+            ctx.strokeRect(x0 + inset, y0 + inset, cw - inset * 2, ch - inset * 2);
+          }
+
+          ctx.restore();
+        }
+      }
+
+      ctx.restore();
+    }
+    ctx.restore();
+
+    const clearToEmpty = smoothstep(norm(p, 0.76, 0.90));
+    if (clearToEmpty > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = `rgba(10, 15, 26, ${0.82 * clearToEmpty})`;
+      ctx.fillRect(0, 0, state.width, state.height);
+      ctx.restore();
+    }
+
+    const resolveT = smoothstep(norm(p, 0.84, 1.0));
+    if (resolveT > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const goldBase = 0.12 + resolveT * 0.55;
+      const alpha = clamp(resolveT, 0, 1) * 0.82;
+      ctx.globalAlpha = alpha;
+      for (let i = 0; i < state.resolve.particles.length; i += 1) {
+        const pt = state.resolve.particles[i];
+        const depth = pt.z;
+        const ease = smoothstep(resolveT);
+        const x = lerp(pt.x0, pt.x1, ease);
+        const y = lerp(pt.y0, pt.y1, ease);
+        const r = lerp(2.2, 1.15, depth) * lerp(1.0, 0.9, ease);
+        ctx.fillStyle = `rgba(201, 168, 107, ${goldBase * (0.65 + (1 - depth) * 0.35)})`;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  };
+
+  const render = () => {
+    state.rafId = null;
+
+    const MAX_STEP = 0.006;
+    const EASE = 0.22;
+    const EPS = 0.00035;
+
+    const delta = state.targetProgress - state.progress;
+    if (Math.abs(delta) <= EPS) {
+      state.progress = state.targetProgress;
+    } else {
+      const eased = delta * EASE;
+      const step = clamp(eased, -MAX_STEP, MAX_STEP);
+      state.progress = clamp(state.progress + step, 0, 1);
+    }
+
+    const p = state.progress;
+    setOverlay(p);
+    draw(p);
+
+    if (Math.abs(state.targetProgress - state.progress) > EPS) {
+      requestRender();
+    }
+  };
+
+  const requestRender = () => {
+    if (state.rafId != null) return;
+    state.rafId = requestAnimationFrame(render);
+  };
+
+  const onScroll = () => {
+    const raw = getScrollProgress();
+    const next = raw;
+    if (Math.abs(next - state.targetProgress) < 0.0005) return;
+    state.targetProgress = next;
+    requestRender();
+  };
+
+  const onResize = utils.debounce(() => {
+    resize();
+    requestRender();
+  }, 120);
+
+  resize();
+
+  if (PREFERS_REDUCED_MOTION) {
+    state.progress = 1;
+    state.targetProgress = 1;
+    state.lastLineText = '';
+    kickerEl.style.opacity = '1';
+    finalEl.style.opacity = '1';
+    finalEl.style.setProperty('--farview-reveal', '1');
+    lineEl.textContent = '';
+    lineEl.style.opacity = '0';
+    draw(1);
+    return;
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize);
+  onScroll();
+}
+
 function initServicesRail() {
   const section = document.querySelector('[data-services-rail]');
   if (!section) return;
@@ -1895,6 +2325,7 @@ function init() {
   }
 
   initVeinNetwork();
+  initFarViewSequence();
   initFloatingNodes();
   initGlobalAnimations();
   createCircuitLines();
