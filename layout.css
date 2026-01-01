@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --container-padding-inline: var(--grid-margin-desktop);
   --grid-gutter-current: var(--grid-gutter-desktop);
 }
@@ -2027,5 +2027,242 @@ body {
 
   .footer-meta > * {
     grid-column: span 12;
+  }
+}
+
+.section--wcu {
+  background-color: #f6f5f1;
+  color: #111318;
+  border-top: 1px solid rgba(17, 19, 24, 0.08);
+}
+
+.section--wcu::before,
+.section--wcu::after {
+  display: none;
+}
+
+.section--wcu .wcu {
+  min-height: 240vh;
+}
+
+.section--wcu .wcu__sticky {
+  position: sticky;
+  top: calc(var(--wcu-header-offset, 0px) + 24px);
+  padding-block: clamp(28px, 4vw, 48px);
+}
+
+.section--wcu .wcu__header {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.section--wcu .wcu__title {
+  margin: 0;
+  font-size: var(--font-size-section-header);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.section--wcu .wcu__progress-row {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section--wcu .wcu__progress-track {
+  width: min(340px, 60vw);
+  height: 2px;
+  background: rgba(17, 19, 24, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.section--wcu .wcu__progress-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  transform-origin: left center;
+  transform: scaleX(var(--wcu-progress, 0));
+  will-change: transform;
+}
+
+.section--wcu .wcu__phase {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(17, 19, 24, 0.72);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.section--wcu .wcu__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.section--wcu .wcu__copy-stage {
+  position: relative;
+  min-height: clamp(240px, 26vw, 340px);
+}
+
+.section--wcu .wcu__copy {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  transition: opacity 220ms ease, transform 260ms ease;
+  pointer-events: none;
+}
+
+.section--wcu .wcu__copy.is-active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.section--wcu .wcu__copy h3 {
+  margin: 0 0 14px 0;
+  font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+}
+
+.section--wcu .wcu__copy p {
+  margin: 0;
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  line-height: 1.55;
+  color: rgba(17, 19, 24, 0.78);
+  max-width: 44ch;
+}
+
+.section--wcu .wcu__visual-stage {
+  position: relative;
+  min-height: clamp(260px, 28vw, 360px);
+}
+
+.section--wcu .wcu__visual-align {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, var(--wcu-visual-shift, 0px), 0);
+  will-change: transform;
+}
+
+.section--wcu .wcu__visual {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 220ms ease, transform 260ms ease;
+  pointer-events: none;
+}
+
+.section--wcu .wcu__visual[hidden] {
+  display: none !important;
+}
+
+.section--wcu .wcu__visual.is-active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.section--wcu .wcu__diagram {
+  width: min(420px, 100%);
+  height: auto;
+}
+
+.section--wcu .wcu__diagram path,
+.section--wcu .wcu__diagram line,
+.section--wcu .wcu__diagram rect,
+.section--wcu .wcu__diagram circle {
+  stroke: rgba(17, 19, 24, 0.55);
+  stroke-width: 1.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.section--wcu .wcu-p1__speed {
+  opacity: calc(1 - var(--wcu-p1-rect, 0));
+  transform: translate3d(calc(var(--wcu-p1-sweep, 0) * 160px), 0, 0);
+}
+
+.section--wcu .wcu-p1__rect {
+  stroke-dasharray: 520;
+  stroke-dashoffset: calc(520 * (1 - var(--wcu-p1-rect, 0)));
+  opacity: var(--wcu-p1-rect, 0);
+}
+
+.section--wcu .wcu-p1__rect-gold {
+  stroke: rgba(143, 115, 37, 0.9);
+  stroke-width: 1.8;
+  opacity: var(--wcu-p1-gold, 0);
+}
+
+.section--wcu .wcu-p2__center {
+  opacity: var(--wcu-p2-center, 0);
+}
+
+.section--wcu .wcu-p2__node:not(.wcu-p2__center) {
+  opacity: clamp(0, calc((var(--wcu-p2-grid, 0) - var(--d, 0)) * 6), 1);
+}
+
+.section--wcu .wcu-p2__link {
+  stroke-dasharray: 200;
+  stroke-dashoffset: calc(200 * (1 - clamp(0, calc((var(--wcu-p2-links, 0) - var(--d, 0)) * 6), 1)));
+  opacity: clamp(0, calc((var(--wcu-p2-links, 0) - var(--d, 0)) * 6), 1);
+}
+
+.section--wcu .wcu-p3__core {
+  stroke: rgba(143, 115, 37, 0.9);
+  opacity: var(--wcu-p3-core, 0);
+}
+
+.section--wcu .wcu-p3__dot {
+  opacity: clamp(0, calc((var(--wcu-p3-ring, 0) - var(--d, 0)) * 5), 1);
+}
+
+.section--wcu .wcu-p3__link {
+  stroke-dasharray: 200;
+  stroke-dashoffset: calc(200 * (1 - clamp(0, calc((var(--wcu-p3-links, 0) - var(--d, 0)) * 5), 1)));
+  opacity: clamp(0, calc((var(--wcu-p3-links, 0) - var(--d, 0)) * 5), 1);
+}
+
+.section--wcu .wcu-p4__noise {
+  opacity: calc(0.7 * (1 - var(--wcu-p4-clean, 0)));
+}
+
+.section--wcu .wcu-p4__clean {
+  stroke: rgba(143, 115, 37, 0.9);
+  opacity: var(--wcu-p4-line, 0);
+}
+
+@media (max-width: 767px) {
+  .section--wcu .wcu__grid {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .section--wcu .wcu__copy-stage {
+    min-height: 220px;
+  }
+
+  .section--wcu .wcu__visual-stage {
+    min-height: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section--wcu .wcu__copy,
+  .section--wcu .wcu__visual {
+    transition: none;
+    transform: none;
   }
 }

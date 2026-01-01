@@ -1,4 +1,4 @@
-/* =============================================================================
+﻿/* =============================================================================
    FarviewGlobal Interactive Script
    Production-ready JavaScript with performance optimization
    
@@ -1935,7 +1935,7 @@ function initFarviewTerminal() {
       summary: 'Company mission',
       run: () => [
         'Mission:',
-        'Build technology that reduces friction—so people can focus on the work that matters.',
+        'Build technology that reduces frictionâ€”so people can focus on the work that matters.',
         'We ship dependable systems that simplify life and scale with real demand.'
       ]
     },
@@ -1943,7 +1943,7 @@ function initFarviewTerminal() {
       summary: 'Company vision',
       run: () => [
         'Vision:',
-        'A world where software is calm, trustworthy, and invisible when it should be—',
+        'A world where software is calm, trustworthy, and invisible when it should beâ€”',
         'supporting humans with clarity, not noise.'
       ]
     },
@@ -1952,13 +1952,13 @@ function initFarviewTerminal() {
       run: () => [
         'Reach:',
         'Multi-region delivery. Time zones covered. Teams aligned to outcome.',
-        'Built to serve globally—operated with local precision.'
+        'Built to serve globallyâ€”operated with local precision.'
       ]
     },
     protocol_init: {
       summary: 'Initialize core protocol',
       run: () => [
-        'Initializing Farview protocol…',
+        'Initializing Farview protocolâ€¦',
         '[OK] Requirements mapped',
         '[OK] Interfaces simplified',
         '[OK] Reliability gates armed',
@@ -1974,7 +1974,7 @@ function initFarviewTerminal() {
         '2) Reliability is a feature',
         '3) Security and performance are defaults',
         '4) Design for change without drama',
-        '5) Build for humans—operators, users, and teams'
+        '5) Build for humansâ€”operators, users, and teams'
       ]
     },
     clear: {
@@ -2126,7 +2126,7 @@ function initFarviewTerminal() {
   output.innerHTML = '';
   appendLine('FarviewGlobal Terminal', 'fv-terminal__line--title');
   appendLine('Type "help" to explore conceptual commands.', 'fv-terminal__line--muted');
-  appendLine('This terminal is a narrative interface—not a shell.', 'fv-terminal__line--muted');
+  appendLine('This terminal is a narrative interfaceâ€”not a shell.', 'fv-terminal__line--muted');
   appendLine('');
   scheduleRender();
 }
@@ -2298,6 +2298,138 @@ function initScrollAnimations() {
   });
 }
 
+
+function initWhyChooseUs() {
+  const section = document.querySelector('[data-wcu-section]');
+  if (!section) return;
+  if (section.dataset.wcuInit === 'true') return;
+  section.dataset.wcuInit = 'true';
+
+  const phaseEl = section.querySelector('[data-wcu-phase]');
+  const progressFill = section.querySelector('[data-wcu-progress]');
+  const copies = Array.from(section.querySelectorAll('[data-wcu-copy]'));
+  const visuals = Array.from(section.querySelectorAll('[data-wcu-visual]'));
+  const visualAlign = section.querySelector('[data-wcu-visual-align]');
+
+  const floatingNav = document.querySelector('.site-header__floating-nav');
+
+  const measureHeaderOffset = () => {
+    const h = floatingNav ? Math.max(0, Math.round(floatingNav.getBoundingClientRect().height)) : 0;
+    section.style.setProperty('--wcu-header-offset', `${h}px`);
+  };
+
+  const setActiveIndex = (index) => {
+    copies.forEach((el) => el.classList.toggle('is-active', el.getAttribute('data-wcu-copy') === String(index)));
+    visuals.forEach((el) => {
+      const isActive = el.getAttribute('data-wcu-visual') === String(index);
+      if (isActive) {
+        el.hidden = false;
+        el.classList.add('is-active');
+      } else {
+        el.classList.remove('is-active');
+        el.hidden = true;
+      }
+    });
+
+    if (phaseEl) {
+      const n = String(index + 1).padStart(2, '0');
+      phaseEl.textContent = `${n} / 04`;
+    }
+  };
+
+  let raf = 0;
+  let lastPhaseIndex = -1;
+  let needsAlign = true;
+
+  const update = () => {
+    raf = 0;
+
+    const rect = section.getBoundingClientRect();
+    const vh = window.innerHeight || 0;
+
+    const start = window.scrollY + rect.top;
+    const range = Math.max(1, rect.height - vh);
+    const t = clamp((window.scrollY - start) / range, 0, 1);
+
+    const phaseFloat = t * 4;
+    const phaseIndex = Math.min(3, Math.floor(Math.max(0, phaseFloat - 1e-6)));
+    const local = clamp(phaseFloat - phaseIndex, 0, 1);
+
+    section.style.setProperty('--wcu-progress', String(t));
+    section.style.setProperty('--wcu-phase-progress', String(local));
+
+    const setVar = (key, value) => section.style.setProperty(key, String(value));
+
+    setVar('--wcu-p1-sweep', 0);
+    setVar('--wcu-p1-rect', 0);
+    setVar('--wcu-p1-gold', 0);
+    setVar('--wcu-p2-center', 0);
+    setVar('--wcu-p2-grid', 0);
+    setVar('--wcu-p2-links', 0);
+    setVar('--wcu-p3-ring', 0);
+    setVar('--wcu-p3-links', 0);
+    setVar('--wcu-p3-core', 0);
+    setVar('--wcu-p4-clean', 0);
+    setVar('--wcu-p4-line', 0);
+
+    if (phaseIndex === 0) {
+      setVar('--wcu-p1-sweep', clamp(local / 0.35, 0, 1));
+      setVar('--wcu-p1-rect', clamp((local - 0.25) / 0.55, 0, 1));
+      setVar('--wcu-p1-gold', clamp((local - 0.82) / 0.18, 0, 1));
+    } else if (phaseIndex === 1) {
+      setVar('--wcu-p2-center', clamp(local / 0.18, 0, 1));
+      setVar('--wcu-p2-grid', clamp((local - 0.08) / 0.62, 0, 1));
+      setVar('--wcu-p2-links', clamp((local - 0.28) / 0.62, 0, 1));
+    } else if (phaseIndex === 2) {
+      setVar('--wcu-p3-ring', clamp(local / 0.55, 0, 1));
+      setVar('--wcu-p3-links', clamp((local - 0.18) / 0.62, 0, 1));
+      setVar('--wcu-p3-core', clamp((local - 0.62) / 0.38, 0, 1));
+    } else if (phaseIndex === 3) {
+      setVar('--wcu-p4-clean', clamp(local / 0.72, 0, 1));
+      setVar('--wcu-p4-line', clamp((local - 0.35) / 0.65, 0, 1));
+    }
+
+    if (progressFill) {
+      progressFill.style.transform = `scaleX(${t})`;
+    }
+
+    setActiveIndex(phaseIndex);
+
+    if (visualAlign && (needsAlign || phaseIndex !== lastPhaseIndex)) {
+      const copyEl = section.querySelector(`[data-wcu-copy="${phaseIndex}"]`);
+      const titleEl = copyEl ? copyEl.querySelector('h3') : null;
+      const visualStage = section.querySelector('.wcu__visual-stage');
+
+      if (titleEl && visualStage) {
+        const titleRect = titleEl.getBoundingClientRect();
+        const stageRect = visualStage.getBoundingClientRect();
+        const targetY = titleRect.top + titleRect.height * 0.5;
+        const stageCenterY = stageRect.top + stageRect.height * 0.5;
+        const dy = clamp(targetY - stageCenterY, -90, 90);
+        section.style.setProperty('--wcu-visual-shift', `${dy}px`);
+      }
+
+      lastPhaseIndex = phaseIndex;
+      needsAlign = false;
+    }
+  };
+
+  const schedule = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(update);
+  };
+
+  measureHeaderOffset();
+  update();
+
+  window.addEventListener('resize', () => {
+    measureHeaderOffset();
+    needsAlign = true;
+    schedule();
+  }, { passive: true });
+
+  window.addEventListener('scroll', schedule, { passive: true });
+}
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
@@ -2323,6 +2455,8 @@ function init() {
     console.warn('GSAP animations skipped: GSAP/ScrollTrigger not detected.');
     initScrollHighlights();
   }
+
+  initWhyChooseUs();
 
   initVeinNetwork();
   initFarViewSequence();
@@ -2372,3 +2506,5 @@ if (document.readyState === 'loading') {
 } else {
   boot();
 }
+
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -15,8 +15,334 @@
     <link rel="stylesheet" href="global.css" />
     <link rel="stylesheet" href="layout.css" />
     <link rel="stylesheet" href="utilities.css" />
+    <style>
+      body.page-home {
+        --line-height-body: 1.65;
+        --font-size-body: 1.0625rem;
+        --font-size-body-large: 1.5rem;
+        --font-size-label: 0.75rem;
+        --font-size-section-header: clamp(3.1rem, 5.2vw, 4.6rem);
+        --font-size-subheader: clamp(1.9rem, 2.8vw, 2.35rem);
+      }
+
+      body.page-home .section:not(.section--farview-sequence):not(.section--hero) {
+        padding-block: clamp(120px, 8vw, 176px);
+      }
+
+      body.page-home .section__heading {
+        gap: var(--space-lg);
+      }
+
+      body.page-home .section__body {
+        max-width: 60ch;
+      }
+
+      body.page-home p {
+        line-height: var(--line-height-body);
+      }
+
+      body.page-home .section__kicker,
+      body.page-home .hero__kicker,
+      body.page-home .positioning__kicker {
+        font-size: 0.8rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(242, 242, 242, 0.62);
+      }
+
+      body.page-home .section__kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      body.page-home .section__kicker::after {
+        content: '';
+        width: 42px;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(201, 168, 107, 0.0), rgba(201, 168, 107, 0.55), rgba(201, 168, 107, 0.0));
+        opacity: 0.85;
+      }
+
+      body.page-home .hero__content {
+        max-width: 46rem;
+      }
+
+      body.page-home .hero__subtitle {
+        max-width: 42ch;
+      }
+
+      body.page-home .identity-doctrine__lead {
+        margin: 0 0 var(--space-lg) 0;
+        max-width: 58ch;
+        color: rgba(242, 242, 242, 0.8);
+      }
+
+      body.page-home .reveal-text,
+      body.page-home .reveal-button,
+      body.page-home .reveal-tile,
+      body.page-home .reveal-section {
+        opacity: 1;
+        transform: none;
+        filter: none;
+      }
+
+      body.page-home .reveal {
+        opacity: 1;
+        transform: none;
+      }
+
+      body.page-home .js-enabled .wipe-text,
+      body.page-home .js-enabled .wipe-active {
+        clip-path: none;
+        transition: none;
+      }
+
+      body.page-home .reveal-section.is-active {
+        transition: none;
+      }
+
+      body.page-home .story-block {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+
+      body.page-home #services .op-matrix__meta-readout {
+        white-space: normal;
+        line-height: 1.45;
+        max-width: 52ch;
+      }
+
+      body.page-home .faq-chat {
+        width: min(980px, 100%);
+        border: 1px solid rgba(201, 168, 107, 0.22);
+        background: radial-gradient(circle at 10% 0%, rgba(201, 168, 107, 0.08), rgba(10, 15, 26, 0.92) 55%),
+          rgba(10, 15, 26, 0.88);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+        padding: clamp(18px, 2.6vw, 28px);
+      }
+
+      body.page-home .faq-chat__thread {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: clamp(16px, 2.2vw, 22px);
+      }
+
+      body.page-home .faq-chat__message {
+        display: flex;
+      }
+
+      body.page-home .faq-chat__message--farview {
+        justify-content: flex-start;
+      }
+
+      body.page-home .faq-chat__message--visitor {
+        justify-content: flex-end;
+      }
+
+      body.page-home .faq-chat__bubble {
+        max-width: min(66ch, 92%);
+        padding: 14px 16px;
+        border: 1px solid rgba(201, 168, 107, 0.16);
+        background: rgba(10, 15, 26, 0.62);
+        color: rgba(242, 242, 242, 0.9);
+      }
+
+      body.page-home .faq-chat__message--visitor .faq-chat__bubble {
+        border-color: rgba(201, 168, 107, 0.22);
+        background: rgba(201, 168, 107, 0.08);
+      }
+
+      body.page-home .faq-chat__meta {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(242, 242, 242, 0.55);
+        margin: 0 0 8px 0;
+      }
+
+      body.page-home .faq-chat__text {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      body.page-home .faq-chat__replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      body.page-home .faq-chat__chip {
+        appearance: none;
+        border: 1px solid rgba(201, 168, 107, 0.28);
+        background: rgba(10, 15, 26, 0.65);
+        color: rgba(242, 242, 242, 0.92);
+        padding: 12px 14px;
+        min-height: 44px;
+        font: inherit;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+      }
+
+      body.page-home .faq-chat__chip:hover {
+        border-color: rgba(201, 168, 107, 0.55);
+        background: rgba(10, 15, 26, 0.82);
+        transform: translateY(-1px);
+      }
+
+      body.page-home .faq-chat__chip:focus-visible {
+        outline: 2px solid rgba(201, 168, 107, 0.75);
+        outline-offset: 2px;
+      }
+
+      body.page-home .faq-chat__chip:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      body.page-home .faq-chat__message--enter {
+        animation: faq-message-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+
+      @keyframes faq-message-in {
+        from {
+          opacity: 0;
+          transform: translate3d(0, 10px, 0);
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        body.page-home .faq-chat__message--enter {
+          animation: none;
+        }
+        body.page-home .faq-chat__chip {
+          transition: none;
+        }
+      }
+
+      body.page-home .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      body.page-home .hss-section {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-inline: var(--container-padding-inline);
+        padding-top: var(--hss-header-offset, 0px);
+        background-color: var(--color-bg-primary);
+        box-sizing: border-box;
+      }
+
+      body.page-home .hss-inner {
+        width: min(980px, 100%);
+        text-align: center;
+        display: grid;
+        place-items: center;
+      }
+
+      body.page-home .hss-stage {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        transform: translate3d(0, calc(var(--hss-header-offset, 0px) * -0.5), 0);
+      }
+
+      body.page-home .hss-brand {
+        grid-area: 1 / 1;
+        font-family: var(--font-family-heading);
+        font-weight: var(--font-weight-heading-strong);
+        letter-spacing: -0.02em;
+        text-transform: none;
+        line-height: 0.95;
+        font-size: clamp(3.6rem, 8.8vw, 6.4rem);
+        color: rgba(242, 242, 242, 0.94);
+        opacity: 1;
+      }
+
+      body.page-home .hss-lines {
+        grid-area: 1 / 1;
+        margin: 0;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        font-size: clamp(4rem, 10.6vw, 8.2rem);
+        font-family: var(--font-family-heading);
+        font-weight: var(--font-weight-heading-strong);
+        color: rgba(242, 242, 242, 0.94);
+      }
+
+      body.page-home .hss-line {
+        display: block;
+      }
+
+      html.js-enabled body.page-home .hss-brand {
+        transition: opacity 200ms ease-out;
+      }
+
+      html.js-enabled body.page-home .hss-section.is-brand-hidden .hss-brand {
+        opacity: 0;
+      }
+
+      html.js-enabled body.page-home .hss-lines [data-hss-word] {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+      }
+
+      html.js-enabled body.page-home .hss-section.is-sequenced .hss-lines [data-hss-word] {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        transition: opacity 200ms ease-out, transform 200ms ease-out;
+      }
+
+      html.js-enabled body.page-home .hss-section.is-sequenced .hss-lines [data-hss-word="human"] {
+        transition-delay: 0ms;
+      }
+
+      html.js-enabled body.page-home .hss-section.is-sequenced .hss-lines [data-hss-word="simple"] {
+        transition-delay: 150ms;
+      }
+
+      html.js-enabled body.page-home .hss-section.is-sequenced .hss-lines [data-hss-word="scalable"] {
+        transition-delay: 300ms;
+      }
+
+      html.js-enabled body.page-home .hss-section.is-sequenced .hss-lines [data-hss-word="tech"] {
+        transition-delay: 450ms;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html.js-enabled body.page-home .hss-brand {
+          opacity: 0;
+        }
+
+        html.js-enabled body.page-home .hss-lines [data-hss-word] {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+      }
+    </style>
   </head>
-  <body>
+  <body class="page-home">
     <div class="loader" id="fv-loader" aria-label="Loading" role="status" aria-live="polite">
       <div class="loader__stage">
         <div class="loader__panel">
@@ -43,18 +369,22 @@
             </ul>
           </div>
         </nav>
-        <div class="container">
-          <div class="layout-grid">
-            <div class="site-identity section__body">
-              <p class="text-uppercase text-muted">FarviewGlobal</p>
-              <h1 class="text-tight">Human, Simple, and Scalable Tech</h1>
-              <p>Your partners in product innovation, making business and life easier.</p>
-            </div>
-          </div>
-        </div>
       </header>
 
       <main class="site-main">
+        <section class="hss-section" id="human-simple-scalable" data-hss-section aria-label="Human Simple Scalable Tech">
+          <div class="hss-inner">
+            <div class="hss-stage">
+              <div class="hss-brand" data-hss-brand>Farview Global</div>
+              <h2 class="hss-lines text-tight" aria-live="polite">
+                <span class="hss-line" data-hss-word="human">Human.</span>
+                <span class="hss-line" data-hss-word="simple">Simple.</span>
+                <span class="hss-line" data-hss-word="scalable">Scalable.</span>
+                <span class="hss-line" data-hss-word="tech">Tech.</span>
+              </h2>
+            </div>
+          </div>
+        </section>
         <section class="section section--farview-sequence" id="far-view" aria-label="The Far View">
           <div class="farview-sequence" data-farview-sequence>
             <div class="farview-sequence__stage" data-farview-stage>
@@ -67,20 +397,161 @@
             </div>
           </div>
         </section>
+        <section class="section section--wcu" id="why-choose-us" data-wcu-section aria-label="Why choose us?">
+          <div class="container">
+            <div class="wcu" data-wcu>
+              <div class="wcu__sticky" data-wcu-sticky>
+                <header class="wcu__header">
+                  <h2 class="wcu__title">Why choose us?</h2>
+                  <div class="wcu__progress-row" aria-hidden="true">
+                    <div class="wcu__progress-track">
+                      <div class="wcu__progress-fill" data-wcu-progress></div>
+                    </div>
+                    <div class="wcu__phase" data-wcu-phase>01 / 04</div>
+                  </div>
+                </header>
+
+                <div class="wcu__grid">
+                  <div class="wcu__copy-stage" aria-live="polite">
+                    <div class="wcu__copy is-active" data-wcu-copy="0">
+                      <h3>Speed, without sacrificing quality</h3>
+                      <p>We deliver fast while maintaining the engineering discipline required for systems that need to last.</p>
+                    </div>
+
+                    <div class="wcu__copy" data-wcu-copy="1">
+                      <h3>Built for real-world scale</h3>
+                      <p>Our software is designed to perform under real load, real users, and real operational pressure.</p>
+                    </div>
+
+                    <div class="wcu__copy" data-wcu-copy="2">
+                      <h3>Global credibility</h3>
+                      <p>We operate with a global delivery mindset and the accountability expected by modern enterprises.</p>
+                    </div>
+
+                    <div class="wcu__copy" data-wcu-copy="3">
+                      <h3>Clarity over complexity</h3>
+                      <p>We reduce friction across systems and interfaces so teams can move faster with confidence.</p>
+                    </div>
+                  </div>
+
+                  <div class="wcu__visual-stage" aria-hidden="true">
+                    <div class="wcu__visual-align" data-wcu-visual-align>
+                      <div class="wcu__visual is-active" data-wcu-visual="0">
+                        <svg class="wcu__diagram wcu__diagram--p1" viewBox="0 0 420 220" role="img" aria-label="Speed diagram">
+                          <defs>
+                            <clipPath id="wcu-p1-clip">
+                              <rect x="44" y="56" width="332" height="108"></rect>
+                            </clipPath>
+                          </defs>
+
+                          <g class="wcu-p1__speed" clip-path="url(#wcu-p1-clip)">
+                            <path d="M56 86H196"></path>
+                            <path d="M56 110H210"></path>
+                            <path d="M56 134H190"></path>
+                            <path d="M56 158H208"></path>
+                          </g>
+
+                          <rect class="wcu-p1__rect" x="230" y="78" width="132" height="76" rx="0"></rect>
+                          <rect class="wcu-p1__rect-gold" x="230" y="78" width="132" height="76" rx="0"></rect>
+                        </svg>
+                      </div>
+
+                      <div class="wcu__visual" data-wcu-visual="1">
+                        <svg class="wcu__diagram wcu__diagram--p2" viewBox="0 0 420 220" role="img" aria-label="Scale diagram">
+                          <g class="wcu-p2__lines">
+                            <path class="wcu-p2__link" style="--d:0.35" d="M170 84H250"></path>
+                            <path class="wcu-p2__link" style="--d:0.42" d="M170 110H250"></path>
+                            <path class="wcu-p2__link" style="--d:0.50" d="M170 136H250"></path>
+                            <path class="wcu-p2__link" style="--d:0.58" d="M170 84V136"></path>
+                            <path class="wcu-p2__link" style="--d:0.66" d="M210 84V136"></path>
+                            <path class="wcu-p2__link" style="--d:0.74" d="M250 84V136"></path>
+                          </g>
+
+                          <g class="wcu-p2__nodes">
+                            <circle class="wcu-p2__node wcu-p2__center" cx="210" cy="110" r="7"></circle>
+
+                            <circle class="wcu-p2__node" style="--d:0.18" cx="170" cy="84" r="6"></circle>
+                            <circle class="wcu-p2__node" style="--d:0.24" cx="210" cy="84" r="6"></circle>
+                            <circle class="wcu-p2__node" style="--d:0.30" cx="250" cy="84" r="6"></circle>
+
+                            <circle class="wcu-p2__node" style="--d:0.36" cx="170" cy="110" r="6"></circle>
+                            <circle class="wcu-p2__node" style="--d:0.42" cx="250" cy="110" r="6"></circle>
+
+                            <circle class="wcu-p2__node" style="--d:0.48" cx="170" cy="136" r="6"></circle>
+                            <circle class="wcu-p2__node" style="--d:0.54" cx="210" cy="136" r="6"></circle>
+                            <circle class="wcu-p2__node" style="--d:0.60" cx="250" cy="136" r="6"></circle>
+                          </g>
+                        </svg>
+                      </div>
+
+                      <div class="wcu__visual" data-wcu-visual="2">
+                        <svg class="wcu__diagram wcu__diagram--p3" viewBox="0 0 420 220" role="img" aria-label="Global diagram">
+                          <circle class="wcu-p3__core" cx="210" cy="110" r="10"></circle>
+
+                          <g class="wcu-p3__ring">
+                            <circle class="wcu-p3__dot" style="--d:0.08" cx="210" cy="40" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.12" cx="260" cy="52" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.16" cx="295" cy="85" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.20" cx="308" cy="110" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.24" cx="295" cy="135" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.28" cx="260" cy="168" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.32" cx="210" cy="180" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.36" cx="160" cy="168" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.40" cx="125" cy="135" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.44" cx="112" cy="110" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.48" cx="125" cy="85" r="4"></circle>
+                            <circle class="wcu-p3__dot" style="--d:0.52" cx="160" cy="52" r="4"></circle>
+                          </g>
+
+                          <g class="wcu-p3__links">
+                            <path class="wcu-p3__link" style="--d:0.20" d="M210 40L210 110"></path>
+                            <path class="wcu-p3__link" style="--d:0.28" d="M295 85L210 110"></path>
+                            <path class="wcu-p3__link" style="--d:0.36" d="M295 135L210 110"></path>
+                            <path class="wcu-p3__link" style="--d:0.44" d="M210 180L210 110"></path>
+                            <path class="wcu-p3__link" style="--d:0.52" d="M125 135L210 110"></path>
+                            <path class="wcu-p3__link" style="--d:0.60" d="M125 85L210 110"></path>
+                          </g>
+                        </svg>
+                      </div>
+
+                      <div class="wcu__visual" data-wcu-visual="3">
+                        <svg class="wcu__diagram wcu__diagram--p4" viewBox="0 0 420 220" role="img" aria-label="Clarity diagram">
+                          <g class="wcu-p4__noise">
+                            <path d="M120 72L190 122"></path>
+                            <path d="M142 150L230 92"></path>
+                            <path d="M170 64L270 150"></path>
+                            <path d="M220 70L300 128"></path>
+                            <path d="M132 108L308 98"></path>
+                            <path d="M150 92L280 162"></path>
+                            <path d="M166 144L292 74"></path>
+                            <path d="M110 132L240 64"></path>
+                          </g>
+
+                          <path class="wcu-p4__clean" d="M112 110H308"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
         <section class="section section--hero reveal reveal-on-scroll reveal-section animate-section" id="hero" data-reveal="section">
           <div class="hero">
             <canvas id="veinCanvas" class="parallax-layer" data-speed="0.6" aria-hidden="true"></canvas>
             <div class="container hero__container">
               <div class="layout-grid hero__grid">
                 <div class="hero__content stack-lg">
-                  <h1 class="hero__title text-tight wipe-text reveal parallax-layer scroll-highlight reveal-text animate-text" data-speed="0.85" data-reveal-item data-wipe-target>Why Choose Us</h1>
-                  <p class="hero__subtitle text-body-large reveal parallax-layer reveal-text animate-text" data-speed="0.92" data-reveal-item>We empower businesses with technology that feels simple, fast, and human-centered.</p>
+                  <p class="hero__kicker" data-reveal-item>Tension</p>
+                  <h2 class="hero__title text-tight wipe-text reveal parallax-layer scroll-highlight reveal-text animate-text" data-speed="0.85" data-reveal-item data-wipe-target>When software gets loud, work slows down.</h2>
+                  <p class="hero__subtitle text-body-large reveal parallax-layer reveal-text animate-text" data-speed="0.92" data-reveal-item>We build systems that stay understandable under pressureâ€”so your team can move with clarity.</p>
                   <ul class="stack-xs text-body-regular text-muted reveal parallax-layer reveal-text animate-text" data-speed="0.94" data-reveal-item>
-                    <li>Speed with Quality</li>
-                    <li>Global Credibility</li>
-                    <li>Thoughtful &amp; Human-Centered Design</li>
-                    <li>Scalable Solutions Built for Growth</li>
-                    <li>Reliable Systems That Reduce Complexity</li>
+                    <li>Move fast without fragile delivery</li>
+                    <li>Global execution, direct accountability</li>
+                    <li>Human-first design for users and operators</li>
+                    <li>Architecture that scales without becoming obscure</li>
+                    <li>Reliability that reduces complexity instead of managing it</li>
                   </ul>
                   <div class="hero__cta-group parallax-layer" data-speed="0.97">
                     <a class="hero__cta hero__cta--primary reveal reveal-button animate-button" data-reveal-item href="#contact">Schedule a Consultation</a>
@@ -96,11 +567,12 @@
           <div class="container">
             <div class="layout-grid story-block">
               <header class="section__heading identity-doctrine">
-                <span class="section__label reveal" data-reveal-item>[FARVIEW_IDENTITY]</span>
-                <h2 class="identity-doctrine__title reveal" data-reveal-item>Technology that feels calm.</h2>
+                <span class="section__kicker" data-reveal-item>Belief</span>
+                <h2 class="identity-doctrine__title reveal" data-reveal-item>Technology that feels <span class="text-gold">calm</span>.</h2>
                 <p class="identity-doctrine__support text-body-large reveal" data-reveal-item>Clear interfaces. Dependable systems. Quiet velocity.</p>
               </header>
               <div class="section__body identity-doctrine">
+                <p class="identity-doctrine__lead text-body-large reveal" data-reveal-item>At <span class="text-gold">The Far View</span>, the best software is the kind you stop noticingâ€”because it makes decisions easier and failure rarer.</p>
                 <ol class="identity-doctrine__principles" role="list" aria-label="Principles">
                   <li class="identity-doctrine__principle reveal" data-reveal-item>
                     <div class="identity-doctrine__row">
@@ -153,7 +625,7 @@
                       </span>
                       <div class="identity-doctrine__copy">
                         <h3 class="identity-doctrine__principle-title">Security is fundamental</h3>
-                        <p class="identity-doctrine__principle-desc">Trust is engineered—through defaults, discipline, and verification.</p>
+                        <p class="identity-doctrine__principle-desc">Trust is engineeredâ€”through defaults, discipline, and verification.</p>
                       </div>
                     </div>
                   </li>
@@ -178,43 +650,13 @@
           </div>
         </section>
 
-        <section class="section section--surface reveal-on-scroll reveal-section animate-section" id="feature-sections" data-section="FEATURE_SECTIONS">
-          <div class="container">
-            <div class="stack-lg story-block">
-              <header class="section__heading">
-                <span class="section__label text-uppercase text-muted reveal-text animate-text">[FEATURE_SECTIONS]</span>
-              </header>
-              <div class="feature-sections stack-lg">
-                <section class="feature-section stack-md" data-feature-section="SYSTEM_TERMINAL">
-                  <header class="feature-section__heading stack-xs">
-                    <span class="text-uppercase text-muted animate-text">System Terminal</span>
-                  </header>
-                  <div class="feature-section__body stack-xs text-body-regular">
-                    <div class="fv-terminal" data-fv-terminal>
-                      <div class="fv-terminal__output" data-fv-terminal-output aria-live="polite"></div>
-                      <div class="fv-terminal__suggest" data-fv-terminal-suggest></div>
-                      <div class="fv-terminal__inputline" data-fv-terminal-inputline>
-                        <span class="fv-terminal__prompt" aria-hidden="true">farview@core:~$</span>
-                        <span class="fv-terminal__typed" data-fv-terminal-typed></span>
-                        <span class="fv-terminal__ghost" data-fv-terminal-ghost aria-hidden="true"></span>
-                        <span class="fv-terminal__caret" aria-hidden="true"></span>
-                        <input class="fv-terminal__input" data-fv-terminal-input type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command input" />
-                      </div>
-                      <div class="fv-terminal__meta text-muted">Type <span class="text-gold">help</span> for available commands. Use <span class="text-gold">Tab</span> to autocomplete.</div>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section class="section section--stats reveal reveal-on-scroll reveal-section animate-section" id="stats" data-reveal="section">
           <div class="container">
             <div class="layout-grid story-block">
               <header class="section__heading">
-                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[STATS]</span>
-                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Impact Metrics</h2>
+                <span class="section__kicker" data-reveal-item>Proof</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Impact that compounds.</h2>
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Clarity shows up as speed, uptime, and outcomes you can measure.</p>
               </header>
               <div class="section__body">
                 <div class="impact-metrics" aria-label="Impact Metrics">
@@ -240,8 +682,8 @@
                   </div>
                   <aside class="impact-metrics__clients" aria-label="Clients and partners">
                     <div class="impact-metrics__clients-head">
-                      <span class="impact-metrics__clients-label text-uppercase text-muted reveal reveal-text animate-text" data-reveal-item>[CLIENTS_PARTNERS]</span>
-                      <p class="impact-metrics__clients-note text-body-regular text-muted reveal reveal-text animate-text" data-reveal-item>Selected operators we support. Placeholder logos.</p>
+                      <span class="impact-metrics__clients-label text-uppercase text-muted reveal reveal-text animate-text" data-reveal-item>Clients &amp; Partners</span>
+                      <p class="impact-metrics__clients-note text-body-regular text-muted reveal reveal-text animate-text" data-reveal-item>Selected operators we support. Logos are illustrative.</p>
                     </div>
                     <ul class="impact-metrics__logos" role="list" aria-label="Clients and partners">
                       <li class="impact-metrics__logo reveal" data-reveal-item>
@@ -267,6 +709,7 @@
         <section class="section section--surface section--positioning" id="positioning" data-reveal="section">
           <div class="container">
             <div class="positioning__inner" aria-label="Positioning statement">
+              <p class="positioning__kicker">Resolution</p>
               <p class="positioning__statement"><span class="positioning__rest">We are best known for making software that gets software </span><span class="positioning__accent">out of the way</span><span class="positioning__rest">.</span></p>
             </div>
           </div>
@@ -276,8 +719,9 @@
           <div class="container">
             <div class="layout-grid story-block">
               <header class="section__heading">
-                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CORE_SERVICES]</span>
+                <span class="section__kicker" data-reveal-item>Proof</span>
                 <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>What We Deliver</h2>
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Capabilities are only valuable when they shipâ€”cleanly, safely, and on time.</p>
               </header>
               <div class="section__body">
                 <div class="services-rail" data-services-rail aria-label="What We Deliver">
@@ -301,14 +745,12 @@
 
                     <div class="services-rail__panel" aria-label="Service details">
                       <div class="op-matrix__meta reveal reveal-text animate-text" data-reveal-item>
-                        <span class="op-matrix__meta-label">[OPERATIONAL_MATRIX]</span>
-                        <span class="op-matrix__meta-readout text-muted">CAPABILITY_COLUMNS: 04 · DELIVERY_UNITS: 05 · STATUS: READY</span>
+                        <span class="op-matrix__meta-readout text-muted">A practical map of what we shipâ€”organized for delivery, not for decks.</span>
                       </div>
 
                       <div class="services-rail__panel-stack" data-services-stack>
                         <section class="services-rail__panel-item is-active" id="services-panel-software" data-services-panel="software" role="region" aria-label="Software">
                           <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                            <span class="op-matrix__head-label">[MODULE]</span>
                             <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
                               <path d="M8 8L4 12l4 4" />
                               <path d="M16 8l4 4-4 4" />
@@ -332,7 +774,6 @@
 
                         <section class="services-rail__panel-item" id="services-panel-ai" data-services-panel="ai" role="region" aria-label="AI and Data">
                           <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                            <span class="op-matrix__head-label">[MODULE]</span>
                             <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
                               <path d="M7 7h10v10H7z" />
                               <path d="M9 12h6" />
@@ -355,7 +796,6 @@
 
                         <section class="services-rail__panel-item" id="services-panel-cloud" data-services-panel="cloud" role="region" aria-label="Cloud and DevOps">
                           <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                            <span class="op-matrix__head-label">[MODULE]</span>
                             <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
                               <path d="M8.5 18H7a4 4 0 0 1 0-8 5.5 5.5 0 0 1 10.6 1.6A3.5 3.5 0 0 1 17.5 18H15" />
                               <path d="M12 11v8" />
@@ -374,7 +814,6 @@
 
                         <section class="services-rail__panel-item" id="services-panel-product" data-services-panel="product" role="region" aria-label="Product and Teams">
                           <header class="op-matrix__head reveal animate-text" data-reveal-item>
-                            <span class="op-matrix__head-label">[MODULE]</span>
                             <svg class="op-matrix__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
                               <path d="M6 7h12" />
                               <path d="M6 12h12" />
@@ -405,8 +844,9 @@
           <div class="container">
             <div class="layout-grid story-block signal-scan" data-signal-scan>
               <header class="section__heading signal-scan__heading">
-                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CASE_STUDIES]</span>
+                <span class="section__kicker" data-reveal-item>Trust</span>
                 <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Success Stories</h2>
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Calm delivery is visible: smoother workflows, fewer handoffs, and systems that hold up when it matters.</p>
               </header>
               <div class="section__body signal-scan__body">
                 <div class="signal-scan__shell" aria-label="Signal Scan">
@@ -434,7 +874,7 @@
                         </svg>
                         <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Healthcare - Patient Management Revolution</h3>
                         <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Reduced administrative overhead by 40% through intelligent automation and streamlined workflows for a major hospital network.</p>
-                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>40% efficiency gain · 6-month delivery</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>40% efficiency gain Â· 6-month delivery</p>
                       </article>
                       <article class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="1" data-client="1" aria-label="FinTech case study">
                         <svg class="signal-scan__story-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
@@ -446,7 +886,7 @@
                         </svg>
                         <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>FinTech - Real-Time Trading Platform</h3>
                         <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Built a high-frequency trading system processing millions of transactions with sub-millisecond latency.</p>
-                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>&lt;1ms latency · 99.99% uptime</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>&lt;1ms latency Â· 99.99% uptime</p>
                       </article>
                       <article class="signal-scan__story reveal" data-reveal-item data-signal-story data-index="2" data-client="2" aria-label="Retail case study">
                         <svg class="signal-scan__story-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
@@ -457,7 +897,7 @@
                         </svg>
                         <h3 class="signal-scan__story-title wipe-text reveal reveal-text animate-text" data-reveal-item data-wipe-target>Retail - Omnichannel Commerce Engine</h3>
                         <p class="signal-scan__story-desc text-body-large reveal reveal-text animate-text" data-reveal-item>Unified online and offline experiences, increasing conversion rates by 35% for a global retail brand.</p>
-                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>35% conversion lift · 8 markets</p>
+                        <p class="signal-scan__story-metric text-muted text-body-regular reveal reveal-text animate-text" data-reveal-item>35% conversion lift Â· 8 markets</p>
                       </article>
                     </div>
                   </section>
@@ -488,17 +928,17 @@
                   <template data-signal-client-template="0">
                     <span data-signal-name>Sarah Chen</span>
                     <span data-signal-role>CTO at MedTech Solutions</span>
-                    <span data-signal-quote>“FarviewGlobal transformed our legacy systems into a modern, scalable platform. Their team's expertise was evident at every stage.”</span>
+                    <span data-signal-quote>â€œFarviewGlobal transformed our legacy systems into a modern, scalable platform. Their team's expertise was evident at every stage.â€</span>
                   </template>
                   <template data-signal-client-template="1">
                     <span data-signal-name>Michael Rodriguez</span>
                     <span data-signal-role>VP Engineering at FinanceHub</span>
-                    <span data-signal-quote>“The dedicated team we got from FarviewGlobal felt like an extension of our own. They delivered beyond expectations.”</span>
+                    <span data-signal-quote>â€œThe dedicated team we got from FarviewGlobal felt like an extension of our own. They delivered beyond expectations.â€</span>
                   </template>
                   <template data-signal-client-template="2">
                     <span data-signal-name>Jennifer Park</span>
                     <span data-signal-role>CEO at RetailNow</span>
-                    <span data-signal-quote>“They don't just write code-they solve business problems. Our ROI was positive within the first quarter.”</span>
+                    <span data-signal-quote>â€œThey don't just write code-they solve business problems. Our ROI was positive within the first quarter.â€</span>
                   </template>
                 </div>
               </div>
@@ -510,12 +950,42 @@
           <div class="container">
             <div class="layout-grid story-block">
               <header class="section__heading">
-                <span class="section__label reveal reveal-text animate-text" data-reveal-item>[CALL_TO_ACTION]</span>
+                <span class="section__kicker" data-reveal-item>Next</span>
                 <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>Got an idea? Let's make it real.</h2>
               </header>
               <div class="section__body stack-md">
-                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Schedule your free consultation and discover how we can transform your vision into reality.</p>
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Schedule a free consultation and map the fastest path from intent to a system that stays <span class="text-gold">clear</span>.</p>
                 <a class="hero__cta hero__cta--primary reveal reveal-button animate-button" data-reveal-item href="/contact">Start Your Project</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--surface reveal reveal-on-scroll reveal-section animate-section" id="faq" data-reveal="section">
+          <div class="container">
+            <div class="layout-grid story-block">
+              <header class="section__heading">
+                <span class="section__kicker" data-reveal-item>Conversation</span>
+                <h2 class="wipe-text reveal scroll-highlight reveal-text animate-text" data-reveal-item data-wipe-target>A calm way to get to know us.</h2>
+                <p class="text-body-large reveal reveal-text animate-text" data-reveal-item>Choose a question and weâ€™ll answer in plain languageâ€”so you can feel the intent behind the work.</p>
+              </header>
+              <div class="section__body">
+                <div class="faq-chat" data-faq-chat aria-label="Conversational FAQ">
+                  <div class="faq-chat__thread" role="log" aria-live="polite" aria-relevant="additions text" data-faq-thread>
+                    <div class="faq-chat__message faq-chat__message--farview">
+                      <div class="faq-chat__bubble">
+                        <span class="faq-chat__meta">Farview Global</span>
+                        <p class="faq-chat__text">Hi. This is a simple way to explore how we thinkâ€”calm systems, clear decisions, human-first delivery.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="faq-chat__replies" aria-label="Quick reply questions">
+                    <button class="faq-chat__chip" type="button" data-faq-key="what">What does Farview Global do?</button>
+                    <button class="faq-chat__chip" type="button" data-faq-key="different">What makes you different?</button>
+                    <button class="faq-chat__chip" type="button" data-faq-key="who">Who do you work with?</button>
+                    <button class="faq-chat__chip" type="button" data-faq-key="approach">How do you approach projects?</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -527,7 +997,7 @@
           <div class="site-footer__shell">
             <div class="footer-columns site-footer__columns">
               <section class="site-footer__col stack-sm" aria-label="Navigation">
-                <h2 class="text-uppercase text-muted">[NAVIGATION]</h2>
+                <h2 class="text-uppercase text-muted">Navigation</h2>
                 <ul class="stack-xs">
                   <li><a href="#hero">Home</a></li>
                   <li><a href="#services">Services</a></li>
@@ -536,7 +1006,7 @@
                 </ul>
               </section>
               <section class="site-footer__col stack-sm" aria-label="Services">
-                <h2 class="text-uppercase text-muted">[SERVICES]</h2>
+                <h2 class="text-uppercase text-muted">Services</h2>
                 <ul class="stack-xs">
                   <li><a href="#services">Custom Software</a></li>
                   <li><a href="#services">Cloud &amp; DevOps</a></li>
@@ -546,7 +1016,7 @@
                 </ul>
               </section>
               <section class="site-footer__col stack-sm" aria-label="Company">
-                <h2 class="text-uppercase text-muted">[COMPANY]</h2>
+                <h2 class="text-uppercase text-muted">Company</h2>
                 <ul class="stack-xs">
                   <li><a href="#about">About</a></li>
                   <li><a href="#careers">Careers</a></li>
@@ -555,7 +1025,7 @@
                 </ul>
               </section>
               <section class="site-footer__col stack-sm" aria-label="Connect">
-                <h2 class="text-uppercase text-muted">[CONNECT]</h2>
+                <h2 class="text-uppercase text-muted">Connect</h2>
                 <ul class="stack-xs">
                   <li><a href="#github">GitHub</a></li>
                   <li><a href="#twitter">Twitter</a></li>
@@ -569,8 +1039,8 @@
             </div>
             <div class="footer-meta site-footer__meta">
               <p class="text-uppercase">ALL SYSTEMS OPERATIONAL</p>
-              <p>PROTOCOL v2.4.7 · BUILD 8472</p>
-              <p>© 2025 FarviewGlobal</p>
+              <p>PROTOCOL v2.4.7 Â· BUILD 8472</p>
+              <p>Â© 2025 FarviewGlobal</p>
             </div>
             <div class="site-footer__accent" aria-hidden="true"></div>
           </div>
