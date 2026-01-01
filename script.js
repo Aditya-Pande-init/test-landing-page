@@ -793,7 +793,7 @@ function initFarViewSequence() {
     { start: 0.38, end: 0.45, text: 'But most software does the opposite.' },
     { start: 0.45, end: 0.515, text: 'It fragments attention.' },
     { start: 0.515, end: 0.58, text: 'It adds noise.' },
-    { start: 0.62, end: 0.76, text: 'We make software that gets software out of the way.' },
+    { start: 0.62, end: 0.76, text: 'We are best known for making software that gets out of the way.' },
   ];
 
   const state = {
@@ -930,14 +930,144 @@ function initFarViewSequence() {
     return clamp(raw, 0, 1);
   };
 
+  const initScrollHint = () => {
+    if (PREFERS_REDUCED_MOTION) return;
+    const pointerFine = typeof window.matchMedia === 'function' ? window.matchMedia('(pointer: fine)').matches : true;
+    if (!pointerFine) return;
+
+    let dismissed = false;
+    try {
+      dismissed = window.sessionStorage?.getItem('fvScrollHintDismissed') === 'true';
+    } catch (e) {
+      dismissed = false;
+    }
+    if (dismissed) return;
+
+    const hintText = 'SCROLL TO EXPLORE';
+    const hint = document.createElement('div');
+    hint.className = 'farview-scroll-hint';
+    hint.textContent = hintText;
+    document.body.appendChild(hint);
+
+    let isHovering = false;
+    let isDismissing = false;
+    let hasShown = false;
+    let raf = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+
+    const show = () => {
+      if (dismissed || isDismissing || !isHovering) return;
+      hint.classList.add('is-visible');
+      hasShown = true;
+    };
+
+    const hide = () => {
+      hint.classList.remove('is-visible');
+    };
+
+    const setDismissed = () => {
+      dismissed = true;
+      try {
+        window.sessionStorage?.setItem('fvScrollHintDismissed', 'true');
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    const dismissLetterByLetter = () => {
+      if (dismissed || isDismissing) return;
+      isDismissing = true;
+      hide();
+      let i = hintText.length;
+      hint.textContent = hintText;
+
+      const tick = () => {
+        i -= 1;
+        if (i <= 0) {
+          hint.textContent = '';
+          setDismissed();
+          if (hint.parentNode) hint.parentNode.removeChild(hint);
+          return;
+        }
+        hint.textContent = hintText.slice(0, i);
+        window.setTimeout(tick, 18);
+      };
+
+      window.setTimeout(tick, 12);
+    };
+
+    const render = () => {
+      raf = 0;
+      currentX += (targetX - currentX) * 0.22;
+      currentY += (targetY - currentY) * 0.22;
+      hint.style.setProperty('--fv-hint-x', `${currentX.toFixed(2)}px`);
+      hint.style.setProperty('--fv-hint-y', `${currentY.toFixed(2)}px`);
+      if (!dismissed && isHovering) {
+        raf = requestAnimationFrame(render);
+      }
+    };
+
+    const schedule = () => {
+      if (raf || dismissed) return;
+      raf = requestAnimationFrame(render);
+    };
+
+    const onMove = (event) => {
+      if (dismissed || isDismissing) return;
+      targetX = event.clientX;
+      targetY = event.clientY;
+      schedule();
+    };
+
+    const onEnter = (event) => {
+      if (dismissed || isDismissing) return;
+      isHovering = true;
+      onMove(event);
+      show();
+    };
+
+    const onLeave = () => {
+      isHovering = false;
+      hide();
+    };
+
+    stage.addEventListener('pointerenter', onEnter);
+    stage.addEventListener('pointermove', onMove);
+    stage.addEventListener('pointerleave', onLeave);
+    stage.addEventListener('pointercancel', onLeave);
+
+    window.addEventListener('scroll', () => {
+      if (dismissed || isDismissing || !hasShown) return;
+      const rect = stage.getBoundingClientRect();
+      const inView = rect.bottom > 0 && rect.top < (window.innerHeight || 0);
+      if (!inView) return;
+      const p = getScrollProgress();
+      if (p > 0.006) {
+        dismissLetterByLetter();
+      }
+    }, { passive: true });
+  };
+
   const setOverlay = (p) => {
     let active = null;
     const fade = 0.028;
+    const ACCENT_TEXT = 'We are best known for making software that gets out of the way.';
+    const ACCENT_FADE_OUT_START = 0.80;
+    const ACCENT_FADE_OUT_END = 0.82;
     for (let i = 0; i < statements.length; i += 1) {
       const s = statements[i];
-      if (p < s.start || p > s.end) continue;
+      const isAccentStatement = s.text === ACCENT_TEXT;
+      const end = isAccentStatement ? ACCENT_FADE_OUT_END : s.end;
+      if (p < s.start || p > end) continue;
+
       const ain = smoothstep(norm(p, s.start, s.start + fade));
-      const aout = 1 - smoothstep(norm(p, s.end - fade, s.end));
+      const aout = isAccentStatement
+        ? (1 - smoothstep(norm(p, ACCENT_FADE_OUT_START, ACCENT_FADE_OUT_END)))
+        : (1 - smoothstep(norm(p, s.end - fade, s.end)));
+
       active = { text: s.text, alpha: clamp(ain * aout, 0, 1) };
       break;
     }
@@ -945,9 +1075,25 @@ function initFarViewSequence() {
     const lineAlpha = active ? active.alpha : 0;
 
     const nextText = active ? active.text : '';
+    const isAccentLine = nextText === ACCENT_TEXT;
+
     if (state.lastLineText !== nextText) {
-      lineEl.textContent = nextText;
+      if (isAccentLine) {
+        const phrase = 'out of the way';
+        const markup = nextText.replace(phrase, `<span class="farview-accent-wrap"><span class="farview-accent-base">${phrase}</span><span class="farview-accent">${phrase}</span></span>`);
+        lineEl.innerHTML = markup;
+      } else {
+        lineEl.textContent = nextText;
+      }
+
       state.lastLineText = nextText;
+    }
+
+    if (isAccentLine) {
+      const local = smoothstep(norm(p, 0.62, 0.76));
+      lineEl.style.setProperty('--farview-accent-reveal', String(clamp(local, 0, 1)));
+    } else {
+      lineEl.style.setProperty('--farview-accent-reveal', '0');
     }
 
     lineEl.style.opacity = String(lineAlpha);
@@ -1173,6 +1319,7 @@ function initFarViewSequence() {
   }, 120);
 
   resize();
+  initScrollHint();
 
   if (PREFERS_REDUCED_MOTION) {
     state.progress = 1;
@@ -1935,7 +2082,7 @@ function initFarviewTerminal() {
       summary: 'Company mission',
       run: () => [
         'Mission:',
-        'Build technology that reduces frictionâ€”so people can focus on the work that matters.',
+        'Build technology that reduces friction—so people can focus on the work that matters.',
         'We ship dependable systems that simplify life and scale with real demand.'
       ]
     },
@@ -1943,7 +2090,7 @@ function initFarviewTerminal() {
       summary: 'Company vision',
       run: () => [
         'Vision:',
-        'A world where software is calm, trustworthy, and invisible when it should beâ€”',
+        'A world where software is calm, trustworthy, and invisible when it should be—',
         'supporting humans with clarity, not noise.'
       ]
     },
@@ -1952,13 +2099,13 @@ function initFarviewTerminal() {
       run: () => [
         'Reach:',
         'Multi-region delivery. Time zones covered. Teams aligned to outcome.',
-        'Built to serve globallyâ€”operated with local precision.'
+        'Built to serve globally—operated with local precision.'
       ]
     },
     protocol_init: {
       summary: 'Initialize core protocol',
       run: () => [
-        'Initializing Farview protocolâ€¦',
+        'Initializing Farview protocol…',
         '[OK] Requirements mapped',
         '[OK] Interfaces simplified',
         '[OK] Reliability gates armed',
@@ -1974,7 +2121,7 @@ function initFarviewTerminal() {
         '2) Reliability is a feature',
         '3) Security and performance are defaults',
         '4) Design for change without drama',
-        '5) Build for humansâ€”operators, users, and teams'
+        '5) Build for humans—operators, users, and teams'
       ]
     },
     clear: {
@@ -2126,7 +2273,7 @@ function initFarviewTerminal() {
   output.innerHTML = '';
   appendLine('FarviewGlobal Terminal', 'fv-terminal__line--title');
   appendLine('Type "help" to explore conceptual commands.', 'fv-terminal__line--muted');
-  appendLine('This terminal is a narrative interfaceâ€”not a shell.', 'fv-terminal__line--muted');
+  appendLine('This terminal is a narrative interface—not a shell.', 'fv-terminal__line--muted');
   appendLine('');
   scheduleRender();
 }
@@ -2430,6 +2577,77 @@ function initWhyChooseUs() {
 
   window.addEventListener('scroll', schedule, { passive: true });
 }
+
+function initFloatingNavContrast() {
+  const nav = document.querySelector('.site-header__floating-nav');
+  if (!nav) return;
+  if (nav.dataset.contrastInit === 'true') return;
+  nav.dataset.contrastInit = 'true';
+
+  const parseRgb = (value) => {
+    if (!value) return null;
+    const match = String(value).match(/rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\s*,\s*(\d+(?:\.\d+)?))?\s*\)/i);
+    if (!match) return null;
+    return {
+      r: Number(match[1]),
+      g: Number(match[2]),
+      b: Number(match[3]),
+      a: match[4] === undefined ? 1 : Number(match[4])
+    };
+  };
+
+  const relativeLuminance = ({ r, g, b }) => {
+    const toLinear = (n) => {
+      const v = n / 255;
+      return v <= 0.03928 ? (v / 12.92) : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+
+    const R = toLinear(r);
+    const G = toLinear(g);
+    const B = toLinear(b);
+    return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+  };
+
+  const findEffectiveBackground = (startEl) => {
+    let node = startEl;
+    while (node && node !== document.documentElement) {
+      const bg = parseRgb(window.getComputedStyle(node).backgroundColor);
+      if (bg && bg.a > 0.05) return bg;
+      node = node.parentElement;
+    }
+    const bodyBg = parseRgb(window.getComputedStyle(document.body).backgroundColor);
+    return bodyBg || { r: 10, g: 15, b: 26, a: 1 };
+  };
+
+  const computeIsOnLight = () => {
+    const rect = nav.getBoundingClientRect();
+    const x = Math.min(Math.max(rect.left + rect.width / 2, 1), (window.innerWidth || 0) - 2);
+    const y = Math.min(Math.max(rect.bottom + 2, 1), (window.innerHeight || 0) - 2);
+
+    const el = document.elementFromPoint(x, y);
+    const scope = (el && typeof el.closest === 'function' && el.closest('section')) || el || document.body;
+    const bg = findEffectiveBackground(scope);
+    const lum = relativeLuminance(bg);
+    return lum >= 0.72;
+  };
+
+  let raf = 0;
+  const update = () => {
+    raf = 0;
+    const isOnLight = computeIsOnLight();
+    nav.classList.toggle('is-on-light', isOnLight);
+  };
+
+  const schedule = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(update);
+  };
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  schedule();
+}
+
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
@@ -2457,6 +2675,8 @@ function init() {
   }
 
   initWhyChooseUs();
+
+  initFloatingNavContrast();
 
   initVeinNetwork();
   initFarViewSequence();
