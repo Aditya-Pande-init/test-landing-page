@@ -1,0 +1,17 @@
+<svg width="800" height="800" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .cls-1{fill:#77acf1}.cls-2{fill:#04009a}
+    </style>
+  </defs>
+  <g data-name="35. Production" id="_35._Production">
+    <circle class="cls-1" cx="16" cy="27" r="1"/>
+    <circle class="cls-1" cx="21" cy="27" r="1"/>
+    <circle class="cls-1" cx="6" cy="27" r="1"/>
+    <circle class="cls-1" cx="11" cy="27" r="1"/>
+    <path class="cls-1" d="M14 11h4v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+    <circle class="cls-1" cx="26" cy="27" r="1"/>
+    <path class="cls-2" d="M27 22h-4.18a3 3 0 0 0 .18-1v-8a3 3 0 0 0-3-3h-8a3 3 0 0 0-3 3v8a3 3 0 0 0 .18 1H5a5 5 0 0 0 0 10h22a5 5 0 0 0 0-10m-16-1v-8a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1m16 9H5a3 3 0 0 1 0-6h22a3 3 0 0 1 0 6"/>
+    <path class="cls-2" d="M15 20h-1a1 1 0 0 1 0-2h1a1 1 0 0 1 0 2m9.82-15.38L20 3.25V2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v1.25L7.18 4.62A3 3 0 0 0 5 7.51V11a1 1 0 0 0 2 0V7.51a1 1 0 0 1 .72-1L12 5.33V6a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-.67l4.28 1.22a1 1 0 0 1 .72 1V11a1 1 0 0 0 2 0V7.51a3 3 0 0 0-2.18-2.89M18 6h-4V2h4Z"/>
+  </g>
+</svg>

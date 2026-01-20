@@ -59,6 +59,103 @@ const utils = {
 };
 // =============================================================================
 
+const svgIconCache = new Map();
+
+function normalizeSvgToCurrentColor(svg) {
+  if (!svg) return;
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+
+  const walk = (node) => {
+    if (!node || node.nodeType !== 1) return;
+    const el = node;
+
+    const fill = el.getAttribute('fill');
+    const stroke = el.getAttribute('stroke');
+    if (fill && fill !== 'none') el.setAttribute('fill', 'currentColor');
+    if (stroke && stroke !== 'none') el.setAttribute('stroke', 'currentColor');
+
+    const style = el.getAttribute('style');
+    if (style) {
+      const replaceStyleProp = (prop) => {
+        const re = new RegExp(`(^|;)\\s*${prop}\\s*:\\s*([^;]+)`, 'i');
+        const match = style.match(re);
+        if (!match) return style;
+        const value = (match[2] || '').trim();
+        if (!value || value.toLowerCase() === 'none') return style;
+        return style.replace(re, `$1 ${prop}:currentColor`);
+      };
+
+      let nextStyle = style;
+      nextStyle = replaceStyleProp('fill');
+      nextStyle = replaceStyleProp('stroke');
+      if (nextStyle !== style) el.setAttribute('style', nextStyle);
+    }
+
+    Array.from(el.children || []).forEach(walk);
+  };
+
+  walk(svg);
+}
+
+async function injectSvgIcon(src, hostEl) {
+  if (!hostEl || !src) return;
+
+  const candidates = (() => {
+    const trimmed = String(src).trim();
+    const base = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
+    const list = [];
+    list.push('/' + base);
+    list.push(base);
+    list.push('./' + base);
+    return Array.from(new Set(list));
+  })();
+
+  const tryFetch = async (candidate) => {
+    const url = new URL(candidate, document.baseURI).href;
+    if (svgIconCache.has(url)) return svgIconCache.get(url);
+    const res = await fetch(url, { cache: 'force-cache' });
+    if (!res.ok) return null;
+    const text = await res.text();
+    svgIconCache.set(url, text);
+    return text;
+  };
+
+  try {
+    let svgText = null;
+    for (const candidate of candidates) {
+      // eslint-disable-next-line no-await-in-loop
+      svgText = await tryFetch(candidate);
+      if (svgText) break;
+    }
+    if (!svgText) return;
+
+    hostEl.innerHTML = svgText;
+    const svg = hostEl.querySelector('svg');
+    normalizeSvgToCurrentColor(svg);
+  } catch (e) {
+    // silent
+  }
+}
+
+function initDeliverGridIcons() {
+  const grid = document.querySelector('[data-deliver-grid]');
+  if (!grid) return;
+  if (grid.dataset.deliverInit === 'true') return;
+  grid.dataset.deliverInit = 'true';
+
+  const holders = Array.from(grid.querySelectorAll('[data-deliver-icon]'));
+  holders.forEach((el) => {
+    const key = el.getAttribute('data-deliver-icon');
+    if (!key) return;
+    injectSvgIcon(`svg/${key}.svg`, el);
+  });
+}
+
 function waitForVideoMetadata(video) {
   if (!video) return Promise.reject(new Error('Video element missing'));
   if (video.readyState >= 1) return Promise.resolve(video);
@@ -69,6 +166,298 @@ function waitForVideoMetadata(video) {
     };
     video.addEventListener('loadedmetadata', onLoaded, { once: true });
   });
+}
+
+function initIndustriesAccordion() {
+  const root = document.querySelector('[data-industries-accordion]');
+  if (!root) return;
+  if (root.dataset.accordionInit === 'true') return;
+  root.dataset.accordionInit = 'true';
+
+  const items = Array.from(root.querySelectorAll('[data-industry-item]'));
+  if (!items.length) return;
+
+  const closeItem = (item) => {
+    const trigger = item.querySelector('[data-industry-trigger]');
+    const panel = item.querySelector('[data-industry-panel]');
+    if (!trigger || !panel) return;
+    item.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    panel.setAttribute('aria-hidden', 'true');
+    panel.style.maxHeight = '0px';
+  };
+
+  const openItem = (item) => {
+    const trigger = item.querySelector('[data-industry-trigger]');
+    const panel = item.querySelector('[data-industry-panel]');
+    if (!trigger || !panel) return;
+    item.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.style.maxHeight = `${panel.scrollHeight}px`;
+  };
+
+  const ensureCollapsed = () => {
+    items.forEach((item) => closeItem(item));
+  };
+
+  ensureCollapsed();
+
+  items.forEach((item) => {
+    const trigger = item.querySelector('[data-industry-trigger]');
+    const panel = item.querySelector('[data-industry-panel]');
+    if (!trigger || !panel) return;
+
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      const isOpen = item.classList.contains('is-open');
+      items.forEach((other) => {
+        if (other !== item) closeItem(other);
+      });
+      if (isOpen) {
+        closeItem(item);
+      } else {
+        openItem(item);
+      }
+    });
+  });
+
+  window.addEventListener('resize', utils.debounce(() => {
+    const open = items.find((item) => item.classList.contains('is-open'));
+    if (!open) return;
+    const panel = open.querySelector('[data-industry-panel]');
+    if (!panel) return;
+    panel.style.maxHeight = `${panel.scrollHeight}px`;
+  }, 120));
+}
+
+function initIndustriesWeServe() {
+  const root = document.querySelector('[data-industries]');
+  if (!root) return;
+  if (root.dataset.industriesInit === 'true') return;
+  root.dataset.industriesInit = 'true';
+
+  const viewport = root.querySelector('.industries-ticker__viewport');
+  const content = root.querySelector('[data-industries-content]');
+
+  const panel = root.querySelector('[data-industries-panel]');
+  const titleEl = root.querySelector('[data-industries-title]');
+  const problemsEl = root.querySelector('[data-industries-problems]');
+  const productsEl = root.querySelector('[data-industries-products]');
+
+  const problemsExtraWrap = root.querySelector('[data-industries-problems-extra-wrap]');
+  const problemsExtraEl = root.querySelector('[data-industries-problems-extra]');
+  const productsExtraWrap = root.querySelector('[data-industries-products-extra-wrap]');
+  const productsExtraEl = root.querySelector('[data-industries-products-extra]');
+  const expandBtn = root.querySelector('[data-industries-expand]');
+  const caseWrap = root.querySelector('[data-industries-case]');
+
+  if (!viewport || !content || !panel || !titleEl || !problemsEl || !productsEl) return;
+  if (!problemsExtraWrap || !problemsExtraEl || !productsExtraWrap || !productsExtraEl || !expandBtn || !caseWrap) return;
+
+  const keyToTriggerId = {
+    hospitality: 'industry-trigger-hospitality',
+    logistics: 'industry-trigger-logistics',
+    startups: 'industry-trigger-startups',
+    esg: 'industry-trigger-esg',
+    healthcare: 'industry-trigger-healthcare',
+    finance: 'industry-trigger-finance',
+    retail: 'industry-trigger-retail',
+    manufacturing: 'industry-trigger-manufacturing',
+    telecom: 'industry-trigger-telecom'
+  };
+
+  const keyToIconFile = {
+    hospitality: 'svg/hospitality.svg',
+    logistics: 'svg/logistics.svg',
+    startups: 'svg/startups.svg',
+    esg: 'svg/esg.svg',
+    healthcare: 'svg/healthcare.svg',
+    finance: 'svg/finance.svg',
+    retail: 'svg/retail.svg',
+    manufacturing: 'svg/manufacturing.svg',
+    telecom: 'svg/telecom.svg'
+  };
+
+  const setPaused = (paused) => {
+    root.classList.toggle('is-ticker-paused', paused);
+  };
+
+  viewport.addEventListener('pointerenter', () => setPaused(true));
+  viewport.addEventListener('pointerleave', () => setPaused(false));
+
+  let resumeTimer = 0;
+  const scheduleResume = () => {
+    if (resumeTimer) window.clearTimeout(resumeTimer);
+    resumeTimer = window.setTimeout(() => setPaused(false), 650);
+  };
+
+  viewport.addEventListener('pointerdown', () => {
+    setPaused(true);
+  });
+  viewport.addEventListener('pointerup', scheduleResume);
+  viewport.addEventListener('pointercancel', scheduleResume);
+
+  const iconHolders = Array.from(root.querySelectorAll('[data-industry-icon]'));
+  iconHolders.forEach((el) => {
+    const key = el.getAttribute('data-industry-icon');
+    if (!key) return;
+    const src = keyToIconFile[key];
+    if (!src) return;
+    injectSvgIcon(src, el);
+  });
+
+  const clearList = (ul) => {
+    while (ul.firstChild) ul.removeChild(ul.firstChild);
+  };
+
+  const cleanLine = (raw) => {
+    const text = (raw || '').trim();
+    return text
+      .replace(/^\s*-[\s]+/, '')
+      .replace(/^\s*=>\s*/, '')
+      .replace(/^\s*->\s*/, '')
+      .trim();
+  };
+
+  const setCollapsedState = (expanded) => {
+    panel.classList.toggle('is-expanded', expanded);
+    expandBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+    if (!expanded) {
+      problemsExtraWrap.style.maxHeight = '0px';
+      productsExtraWrap.style.maxHeight = '0px';
+      caseWrap.style.maxHeight = '0px';
+      return;
+    }
+
+    problemsExtraWrap.style.maxHeight = `${problemsExtraWrap.scrollHeight}px`;
+    productsExtraWrap.style.maxHeight = `${productsExtraWrap.scrollHeight}px`;
+    caseWrap.style.maxHeight = `${caseWrap.scrollHeight}px`;
+  };
+
+  window.addEventListener('resize', utils.debounce(() => {
+    if (!panel.classList.contains('is-expanded')) return;
+    problemsExtraWrap.style.maxHeight = `${problemsExtraWrap.scrollHeight}px`;
+    productsExtraWrap.style.maxHeight = `${productsExtraWrap.scrollHeight}px`;
+    caseWrap.style.maxHeight = `${caseWrap.scrollHeight}px`;
+  }, 120));
+
+  const parseIndustry = (key) => {
+    const triggerId = keyToTriggerId[key];
+    if (!triggerId) return null;
+
+    const trigger = content.querySelector(`#${triggerId}`);
+    if (!trigger) return null;
+
+    const item = trigger.closest('[data-industry-item]');
+    if (!item) return null;
+
+    const panelInner = item.querySelector('.industries__panel-inner');
+    if (!panelInner) return null;
+
+    const industryName = (trigger.textContent || '').trim();
+    const problems = Array.from(panelInner.querySelectorAll('.industries__bullets li')).map((li) => (li.textContent || '').trim());
+    const products = Array.from(panelInner.querySelectorAll('.industries__products .industries__product')).map((li) => {
+      const t = li.querySelector('.industries__product-title');
+      const d = li.querySelector('.industries__product-desc');
+      return {
+        title: (t?.textContent || '').trim(),
+        desc: (d?.textContent || '').trim()
+      };
+    });
+
+    return { industryName, problems, products };
+  };
+
+  let switchingTimer = 0;
+  const renderIndustry = (key) => {
+    const data = parseIndustry(key);
+    if (!data) return;
+
+    const allButtons = Array.from(root.querySelectorAll(`.industries-ticker__item[data-industry-key]`));
+    allButtons.forEach((btn) => {
+      btn.classList.toggle('is-active', btn.getAttribute('data-industry-key') === key);
+    });
+
+    panel.classList.add('is-switching');
+    if (switchingTimer) window.clearTimeout(switchingTimer);
+    switchingTimer = window.setTimeout(() => {
+      titleEl.textContent = data.industryName;
+
+      setCollapsedState(false);
+
+      clearList(problemsEl);
+      clearList(problemsExtraEl);
+      data.problems.slice(0, 2).forEach((line) => {
+        const li = document.createElement('li');
+        li.textContent = cleanLine(line);
+        problemsEl.appendChild(li);
+      });
+      data.problems.slice(2).forEach((line) => {
+        const li = document.createElement('li');
+        li.textContent = cleanLine(line);
+        problemsExtraEl.appendChild(li);
+      });
+
+      clearList(productsEl);
+      clearList(productsExtraEl);
+      data.products.slice(0, 2).forEach((p) => {
+        const li = document.createElement('li');
+        li.className = 'industries__product';
+
+        const title = document.createElement('div');
+        title.className = 'industries__product-title';
+        title.textContent = cleanLine(p.title);
+
+        const desc = document.createElement('div');
+        desc.className = 'industries__product-desc';
+        desc.textContent = cleanLine(p.desc);
+
+        li.appendChild(title);
+        li.appendChild(desc);
+        productsEl.appendChild(li);
+      });
+
+      data.products.slice(2).forEach((p) => {
+        const li = document.createElement('li');
+        li.className = 'industries__product';
+
+        const title = document.createElement('div');
+        title.className = 'industries__product-title';
+        title.textContent = cleanLine(p.title);
+
+        const desc = document.createElement('div');
+        desc.className = 'industries__product-desc';
+        desc.textContent = cleanLine(p.desc);
+
+        li.appendChild(title);
+        li.appendChild(desc);
+        productsExtraEl.appendChild(li);
+      });
+
+      panel.classList.remove('is-switching');
+    }, 160);
+  };
+
+  expandBtn.addEventListener('click', () => {
+    if (panel.classList.contains('is-expanded')) return;
+    setCollapsedState(true);
+  });
+
+  const tickerButtons = Array.from(root.querySelectorAll('.industries-ticker__item[data-industry-key]'));
+  tickerButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-industry-key');
+      if (!key) return;
+      setPaused(true);
+      renderIndustry(key);
+      scheduleResume();
+    });
+  });
+
+  const initial = tickerButtons[0]?.getAttribute('data-industry-key') || 'hospitality';
+  renderIndustry(initial);
 }
 // =============================================================================
 
@@ -2675,6 +3064,10 @@ function init() {
   }
 
   initWhyChooseUs();
+
+  initIndustriesWeServe();
+
+  initDeliverGridIcons();
 
   initFloatingNavContrast();
 
